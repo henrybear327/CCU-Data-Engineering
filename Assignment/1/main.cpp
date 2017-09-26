@@ -1,10 +1,13 @@
-#include <bits/stdc++.h>
+#include "FileManager.h" 
+#include "SearchEngine.h"
 
 using namespace std;
 
 int main()
 {
-    printf("Hell world!\n");
+    FileData fileData;
+
+    performTextSearch(fileData);
 
     return 0;
 }

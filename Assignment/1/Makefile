@@ -1,14 +1,22 @@
 CC=/usr/local/Cellar/gcc/7.2.0/bin/g++-7
 CXXFLAGS=-Wall -Wextra -Wshadow -std=c++11
 
-all: main
+all: searchEngine fileManager main
+	$(CC) $(CXXFLAGS) *.o -o main
 
 main: main.cpp
-	$(CC) $(CXXFLAGS) main.cpp -o main
+	$(CC) $(CXXFLAGS) -c main.cpp
 
-format: *.cpp
-    clang-format -style=LLVM -i *.cpp
-    astyle --style=linux *.cpp
+searchEngine: SearchEngine.cpp
+	$(CC) $(CXXFLAGS) -c SearchEngine.cpp
+
+fileManager: FileManager.h
+	$(CC) $(CXXFLAGS) -c FileManager.h
+	
+format: *.cpp *.h
+    clang-format -style=LLVM -i *.cpp *.h
+    astyle --style=linux *.cpp *.h
 
 clean: main
-	rm main
+	rm -f *.o
+	rm -f main
