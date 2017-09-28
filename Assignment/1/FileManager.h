@@ -6,33 +6,36 @@
 
 struct FileData {
 public:
-	FileData() {
-		printf("Loading files...\n");
-		// TODO: file descriptor
-		
-		printf("Done\n");
-	}
+    FileData()
+    {
+        printf("Loading files...\n");
+        // TODO: file descriptor
 
-	bool isLoaded() {
-		// TODO: perform checking
-		return true;
-	}
+        printf("Done\n");
+    }
+
+    bool isLoaded()
+    {
+        // TODO: perform checking
+        return true;
+    }
 
 private:
-	std::string keywordFile = "";
-	std::string textFile = "";
-	std::string resultFile = "";
+    std::string keywordFile = "";
+    std::string textFile = "";
+    std::string resultFile = "";
 
-	FILE* readFileWithName(const char* filename) {
-		printf("Attemping to read %s\n", filename);
+    FILE *readFileWithName(const char *filename)
+    {
+        printf("Attemping to read %s\n", filename);
 
-		printf("Done\n");
-		return NULL;
-	}
+        printf("Done\n");
+        return NULL;
+    }
 
-	// TODO: use fd? as long as fd can work
-	FILE* keyword;
-	FILE* text;
-	FILE* result;
+    // TODO: use fd? as long as fd can work
+    FILE *keyword;
+    FILE *text;
+    FILE *result;
 };
 #endif

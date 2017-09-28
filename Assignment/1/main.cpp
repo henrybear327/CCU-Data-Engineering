@@ -1,4 +1,4 @@
-#include "FileManager.h" 
+#include "FileManager.h"
 #include "SearchEngine.h"
 
 using namespace std;

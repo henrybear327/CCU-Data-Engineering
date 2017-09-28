@@ -12,11 +12,13 @@ searchEngine: SearchEngine.cpp
 
 fileManager: FileManager.h
 	$(CC) $(CXXFLAGS) -c FileManager.h
+
+utf8reader: UTF8Reader.h UTF8Reader.cpp
 	
-format: *.cpp *.h
+format: 
     clang-format -style=LLVM -i *.cpp *.h
     astyle --style=linux *.cpp *.h
 
-clean: main
+clean: 
 	rm -f *.o
 	rm -f main
