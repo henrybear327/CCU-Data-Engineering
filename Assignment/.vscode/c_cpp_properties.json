@@ -3,18 +3,16 @@
         {
             "name": "Mac",
             "includePath": [
-                "/usr/local/Cellar/gcc/7.2.0/include/c++/7.2.0",
-                "/usr/include/c++/4.2.1",
                 "/usr/include",
+                "/usr/local/include",
                 "${workspaceRoot}"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
-                    "/usr/include/c++/4.2.1",
-                    "/usr/local/include",
                     "/usr/include",
+                    "/usr/local/include",
                     "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
@@ -30,16 +28,21 @@
             "includePath": [
                 "/usr/include/c++/5.4.0",
                 "/usr/include/x86_64-linux-gnu/c++/5.4.0",
-                "/usr/include",
                 "/usr/local/include",
-                "${workspaceRoot}"
+                "/usr/include",
+                "/usr/include/x86_64-linux-gnu",
+                "${workspaceRoot}",
+                "/home/henrybear327/Desktop/Data-Science/Assignment/1"                
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
             "browse": {
                 "path": [
-                    "/usr/include",
+                    "/usr/include/c++/5.4.0",
+                    "/usr/include/x86_64-linux-gnu/c++/5.4.0",
                     "/usr/local/include",
+                    "/usr/include",
+                    "/usr/include/x86_64-linux-gnu",
                     "${workspaceRoot}"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
