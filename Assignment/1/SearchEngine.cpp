@@ -10,12 +10,30 @@ void SearchEngine::performTextSearch()
     // TODO: add timer
     printf("Performing keyword searching...\n");
 
-    int code;
-    do {
-        code = fileManage->textHelper->extractWord();
-        printf("%d\n", code);
-    } while (code != 0);
-    puts("");
+    for (int i = 0; i < (int)text.size(); i++) {
+        // printf("%d: %d\n", i, text[i]);
+
+        std::vector<int> candidate;
+        for (int j = 0; i + j < (int)text.size() && j < 7; j++) {
+            candidate.push_back(text[i + j]);
+        }
+
+        for (int j = (int)candidate.size(); j >= 2; j--) {
+            // for (auto k : candidate) {
+            //     printf("%d ", k);
+            //     // getchar();
+            // }
+            // puts("");
+
+            if (match.find(candidate) != match.end()) {
+                printf("Matched at %d\n", i);
+
+                i += (j - 1);
+                break;
+            }
+            candidate.pop_back();
+        }
+    }
 
     printf("Done\n");
 }
@@ -41,7 +59,19 @@ void SearchEngine::loadKeywords()
             break;
 
         printf("Keyword added\n");
-        cnt[tmp] = 0;
+        match[tmp] = 0;
+    }
+
+    printf("Done\n\n");
+}
+
+void SearchEngine::loadText()
+{
+    printf("Loading text...\n");
+
+    for (int code = fileManage->textHelper->extractWord(); code != 0;
+         code = fileManage->textHelper->extractWord()) {
+        text.push_back(code);
     }
 
     printf("Done\n\n");

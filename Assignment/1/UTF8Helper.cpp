@@ -26,11 +26,11 @@ int UTF8Helper::determineWordLength()
 
     int decodedWord = 0;
     if (((buffer[0] >> 7) & 1) == 0) {
-        printf("Number of bytes %d\n", 1);
+        // printf("Number of bytes %d\n", 1);
 
         decodedWord = buffer[0];
     } else if (((buffer[0] >> 5) & 7) == 6) {
-        printf("Number of bytes %d\n", 2);
+        // printf("Number of bytes %d\n", 2);
 
         int ret = read(fd, buffer + 1, 1);
         if (ret == -1) {
@@ -45,7 +45,7 @@ int UTF8Helper::determineWordLength()
 
         decodedWord = ((buffer[0] & 0x1F) << 6) | (buffer[1] & 0x3F);
     } else if (((buffer[0] >> 4) & 15) == 14) {
-        printf("Number of bytes %d\n", 3);
+        // printf("Number of bytes %d\n", 3);
 
         int ret = read(fd, buffer + 1, 2);
         if (ret == -1) {
@@ -62,7 +62,7 @@ int UTF8Helper::determineWordLength()
                       (buffer[2] & 0x3f);
         // printf("%d %d %d: %d\n", buffer[2], buffer[1], buffer[0], decodedWord);
     } else if (((buffer[0] >> 3) & 31) == 30) {
-        printf("Number of bytes %d\n", 4);
+        // printf("Number of bytes %d\n", 4);
 
         int ret = read(fd, buffer + 1, 3);
         if (ret == -1) {
