@@ -1,5 +1,6 @@
-CC=/usr/local/Cellar/gcc/7.2.0/bin/g++-7
-CXXFLAGS=-Wall -Wextra -Wshadow -std=c++11
+#CC=/usr/local/Cellar/gcc/7.2.0/bin/g++-7
+CC=g++
+CXXFLAGS=-Wall -Wextra -Wshadow -std=c++11 -O3
 
 SOURCE=$(wildcard *.cpp)
 HEADER=$(wildcard *.h)
@@ -9,14 +10,14 @@ all: searchEngine fileManager utf8reader main
 	
 	clang-format -style=LLVM -i *.cpp *.h
 	astyle --style=linux *.cpp *.h
-	rm *.orig
-	rm *.gch
+	rm -f *.orig
+	rm -f *.gch
 
-searchEngine: SearchEngine.cpp
+searchEngine: SearchEngine.h SearchEngine.cpp
 	$(CC) $(CXXFLAGS) -c SearchEngine.cpp
 
-fileManager: FileManager.h
-	$(CC) $(CXXFLAGS) -c FileManager.h
+fileManager: FileManager.h FileManager.cpp
+	$(CC) $(CXXFLAGS) -c FileManager.cpp
 
 utf8reader: UTF8Reader.h UTF8Reader.cpp
 	$(CC) $(CXXFLAGS) -c UTF8Reader.cpp

@@ -1,41 +1,22 @@
-#include <cstdio>
-#include <string>
-
 #ifndef FILE_MANAGER_H
 #define FILE_MANAGER_H
 
-struct FileData {
+#include <string>
+
+#define CURRENTDIRECTORYBUFFERSIZE 10000
+
+struct FileManager {
 public:
-    FileData()
-    {
-        printf("Loading files...\n");
-        // TODO: file descriptor
-
-        printf("Done\n");
-    }
-
-    bool isLoaded()
-    {
-        // TODO: perform checking
-        return true;
-    }
+    FileManager(std::string _keywordFile, std::string _textFile,
+                std::string _resultFile);
 
 private:
-    std::string keywordFile = "";
-    std::string textFile = "";
-    std::string resultFile = "";
+    std::string keywordFile;
+    std::string textFile;
+    std::string resultFile;
 
-    FILE *readFileWithName(const char *filename)
-    {
-        printf("Attemping to read %s\n", filename);
-
-        printf("Done\n");
-        return NULL;
-    }
-
-    // TODO: use fd? as long as fd can work
-    FILE *keyword;
-    FILE *text;
-    FILE *result;
+    int keyword_fd;
+    int text_fd;
+    int result_fd;
 };
 #endif

@@ -1,11 +1,21 @@
-#include "FileManager.h"
-
 #ifndef SEARCH_ENGINE_H
 #define SEARCH_ENGINE_H
 
-void performTextSearch(FileData &fileData);
+#include "FileManager.h"
 
-// returns the longest keyword that is matched
-int searchKeywordFromIndex(FILE *fd, int offset);
+struct SearchEngine {
+public:
+    SearchEngine(FileManager *_fileManager)
+    {
+        fileManage = _fileManager;
+    }
 
+    void performTextSearch();
+
+    // returns the longest keyword that is matched
+    int searchKeywordFromIndex(int fd, int offset);
+
+private:
+    FileManager *fileManage;
+};
 #endif
