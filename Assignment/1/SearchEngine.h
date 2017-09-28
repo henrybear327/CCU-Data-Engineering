@@ -17,16 +17,17 @@ public:
 
     void performTextSearch();
 
-private:
+    std::map<std::vector<int>, int> match;
+
     FileManager *fileManager;
 
+private:
     void loadKeywords();
     void loadText();
 
     // returns the longest keyword that is matched
     int searchKeywordFromIndex(int fd, int offset);
 
-    std::map<std::vector<int>, int> match;
     std::vector<int> text;
 };
 #endif

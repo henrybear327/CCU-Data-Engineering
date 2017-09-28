@@ -28,33 +28,35 @@ void SearchEngine::performTextSearch()
             // puts("");
 
             if (match.find(candidate) != match.end()) {
-                printf("Matched at %d: ", i);
-                {
-                    char location[111];
-                    sprintf(location, "\nMatched at %d: ", i);
-                    int ret =
-                        write(fileManager->resultHelper->fd, location, strlen(location));
+                // printf("Matched at %d: ", i);
+                // {
+                //     char location[111];
+                //     sprintf(location, "\nMatched at %d: ", i);
+                //     int ret =
+                //         write(fileManager->resultHelper->fd, location,
+                //         strlen(location));
 
-                    if (ret == -1) {
-                        perror("write() error");
-                        exit(1);
-                    }
-                }
+                //     if (ret == -1) {
+                //         perror("write() error");
+                //         exit(1);
+                //     }
+                // }
 
-                for (auto k : candidate) {
-                    printf("%d\n", fileManager->keywordHelper->dictionary[k].bytes);
-                    {
-                        int ret = write(fileManager->resultHelper->fd,
-                                        fileManager->keywordHelper->dictionary[k].buffer,
-                                        fileManager->keywordHelper->dictionary[k].bytes);
+                // for (auto k : candidate) {
+                //     printf("%d\n", fileManager->keywordHelper->dictionary[k].bytes);
+                //     {
+                //         int ret = write(fileManager->resultHelper->fd,
+                //                         fileManager->keywordHelper->dictionary[k].buffer,
+                //                         fileManager->keywordHelper->dictionary[k].bytes);
 
-                        if (ret == -1) {
-                            perror("write() error");
-                            exit(1);
-                        }
-                    }
-                }
+                //         if (ret == -1) {
+                //             perror("write() error");
+                //             exit(1);
+                //         }
+                //     }
+                // }
 
+                match[candidate]++;
                 i += (j - 1);
                 break;
             }
