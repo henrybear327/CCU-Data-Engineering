@@ -4,6 +4,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <unistd.h>
 
 void SearchEngine::performTextSearch()
 {
@@ -26,7 +28,32 @@ void SearchEngine::performTextSearch()
             // puts("");
 
             if (match.find(candidate) != match.end()) {
-                printf("Matched at %d\n", i);
+                printf("Matched at %d: ", i);
+                {
+                    char location[111];
+                    sprintf(location, "\nMatched at %d: ", i);
+                    int ret =
+                        write(fileManager->resultHelper->fd, location, strlen(location));
+
+                    if (ret == -1) {
+                        perror("write() error");
+                        exit(1);
+                    }
+                }
+
+                for (auto k : candidate) {
+                    printf("%d\n", fileManager->keywordHelper->dictionary[k].bytes);
+                    {
+                        int ret = write(fileManager->resultHelper->fd,
+                                        fileManager->keywordHelper->dictionary[k].buffer,
+                                        fileManager->keywordHelper->dictionary[k].bytes);
+
+                        if (ret == -1) {
+                            perror("write() error");
+                            exit(1);
+                        }
+                    }
+                }
 
                 i += (j - 1);
                 break;
@@ -45,8 +72,8 @@ void SearchEngine::loadKeywords()
     while (1) {
         bool terminate = false;
         std::vector<int> tmp;
-        for (int i = 0, code = fileManage->keywordHelper->extractWord(); code != 10;
-             i++, code = fileManage->keywordHelper->extractWord()) {
+        for (int i = 0, code = fileManager->keywordHelper->extractWord();
+             code != 10; i++, code = fileManager->keywordHelper->extractWord()) {
             if (code == 0) {
                 terminate = true;
                 break;
@@ -69,8 +96,8 @@ void SearchEngine::loadText()
 {
     printf("Loading text...\n");
 
-    for (int code = fileManage->textHelper->extractWord(); code != 0;
-         code = fileManage->textHelper->extractWord()) {
+    for (int code = fileManager->textHelper->extractWord(); code != 0;
+         code = fileManager->textHelper->extractWord()) {
         text.push_back(code);
     }
 

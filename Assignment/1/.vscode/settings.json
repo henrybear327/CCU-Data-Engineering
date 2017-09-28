@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "string": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "cstdlib": "cpp"
     }
 }

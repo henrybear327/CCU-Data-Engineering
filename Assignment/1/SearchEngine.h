@@ -3,13 +3,14 @@
 
 #include "FileManager.h"
 #include <map>
+#include <unistd.h>
 #include <vector>
 
 struct SearchEngine {
 public:
     SearchEngine(FileManager *_fileManager)
     {
-        fileManage = _fileManager;
+        fileManager = _fileManager;
         loadKeywords();
         loadText();
     }
@@ -17,7 +18,7 @@ public:
     void performTextSearch();
 
 private:
-    FileManager *fileManage;
+    FileManager *fileManager;
 
     void loadKeywords();
     void loadText();

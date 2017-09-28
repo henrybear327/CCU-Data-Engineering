@@ -1,0 +1,18 @@
+[36mCurrent directory is /home/henrybear327/Desktop/Data-Science/Assignment/1
+
+Files to be loaded:
+Keyword: /home/henrybear327/Desktop/Data-Science/Assignment/1/./testcase/small/keyword.txt
+Text: /home/henrybear327/Desktop/Data-Science/Assignment/1/./testcase/small/text.txt
+Result: /home/henrybear327/Desktop/Data-Science/Assignment/1/./testcase/small/result.txt
+Done loading files
+
+[0mLoading keywords...
+Keyword added
+Keyword added
+Done
+
+Loading text...
+Done
+
+Performing keyword searching...
+Matched at 0: 

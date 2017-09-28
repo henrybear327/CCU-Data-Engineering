@@ -19,15 +19,32 @@ Perform whatever you want
 #ifndef UTF8_HELPER_H
 #define UTF8_HELPER_H
 
+#include <map>
+
+struct Word {
+    Word() {}
+    Word(unsigned char *_buffer, int _bytes)
+    {
+        bytes = _bytes;
+        for (int i = 0; i < 4; i++) {
+            buffer[i] = _buffer[i];
+        }
+    }
+
+    int bytes;
+    unsigned char buffer[4];
+};
+
 struct UTF8Helper {
 public:
     UTF8Helper(int _fd);
 
     int extractWord();
 
-private:
+    std::map<int, Word> dictionary;
     int fd;
 
+private:
     int determineWordLength();
 };
 
