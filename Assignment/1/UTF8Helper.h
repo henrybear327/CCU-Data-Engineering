@@ -16,7 +16,19 @@ Load it into an int
 Perform whatever you want
 */
 
-#ifndef UTF8_READER_H
-#define UTF8_READER_H
+#ifndef UTF8_HELPER_H
+#define UTF8_HELPER_H
+
+struct UTF8Helper {
+public:
+    UTF8Helper(int _fd);
+
+    int extractWord();
+
+private:
+    int fd;
+
+    int determineWordLength();
+};
 
 #endif

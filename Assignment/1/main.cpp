@@ -16,8 +16,8 @@ int main()
 {
     FileManager fileManager(keywordFile, textFile, resultFile);
 
-    // SearchEngine searchEngine(&fileManager);
-    // searchEngine.performTextSearch();
+    SearchEngine searchEngine(&fileManager);
+    searchEngine.performTextSearch();
 
     return 0;
 }
