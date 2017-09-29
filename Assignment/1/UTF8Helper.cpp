@@ -103,5 +103,5 @@ int UTF8Helper::extractWord()
 void UTF8Helper::clearOriginalData()
 {
     originalData.clear();
-    originalData.resize(0);
+    originalData.shrink_to_fit();
 }

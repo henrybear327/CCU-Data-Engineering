@@ -130,6 +130,9 @@ void SearchEngine::loadKeywords()
     }
 
     fileManager->keywordHelper->clearOriginalData();
+#ifdef VECTORBASED
+    text.shrink_to_fit();
+#endif
 
     printf("Done\n\n");
 }
@@ -155,6 +158,10 @@ void SearchEngine::loadText()
     }
 
     fileManager->textHelper->clearOriginalData();
+
+#ifdef VECTORBASED
+    text.shrink_to_fit();
+#endif
 
     gettimeofday(&ending, NULL);
     elapsedTime = (ending.tv_sec - starting.tv_sec) * 1000.0;    // sec to ms
