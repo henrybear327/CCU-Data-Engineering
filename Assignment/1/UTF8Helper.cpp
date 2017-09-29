@@ -99,3 +99,9 @@ int UTF8Helper::extractWord()
 {
     return determineWordLength();
 }
+
+void UTF8Helper::clearOriginalData()
+{
+    originalData.clear();
+    originalData.resize(0);
+}

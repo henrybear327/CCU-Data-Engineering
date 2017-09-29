@@ -45,6 +45,8 @@ public:
     std::map<int, Word> dictionary;
     int fd;
 
+    void clearOriginalData();
+
 private:
     void loadFileToMemory();
     unsigned char getNext();

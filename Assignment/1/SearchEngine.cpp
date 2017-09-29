@@ -44,7 +44,7 @@ void SearchEngine::performTextSearch()
             // }
             // puts("");
 
-            auto it = match.find(candidate);
+            std::map<std::vector<int>, int>::iterator it = match.find(candidate);
             if (it != match.end()) {
                 // printf("Matched at %d: ", i);
                 // {
@@ -129,6 +129,8 @@ void SearchEngine::loadKeywords()
         match[tmp] = 0;
     }
 
+    fileManager->keywordHelper->clearOriginalData();
+
     printf("Done\n\n");
 }
 
@@ -151,6 +153,8 @@ void SearchEngine::loadText()
         text += std::to_string(code);
 #endif
     }
+
+    fileManager->textHelper->clearOriginalData();
 
     gettimeofday(&ending, NULL);
     elapsedTime = (ending.tv_sec - starting.tv_sec) * 1000.0;    // sec to ms
