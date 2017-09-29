@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <sys/time.h>
 #include <unistd.h>
 
 void SearchEngine::performTextSearch()
@@ -87,7 +88,7 @@ void SearchEngine::loadKeywords()
         if (terminate)
             break;
 
-        printf("Keyword added\n");
+        // printf("Keyword added\n");
         match[tmp] = 0;
     }
 
@@ -96,6 +97,10 @@ void SearchEngine::loadKeywords()
 
 void SearchEngine::loadText()
 {
+    struct timeval starting, ending;
+    int elapsedTime;
+    gettimeofday(&starting, NULL);
+
     printf("Loading text...\n");
 
     for (int code = fileManager->textHelper->extractWord(); code != 0;
@@ -103,5 +108,44 @@ void SearchEngine::loadText()
         text.push_back(code);
     }
 
+    gettimeofday(&ending, NULL);
+    elapsedTime = (ending.tv_sec - starting.tv_sec) * 1000.0;    // sec to ms
+    elapsedTime += (ending.tv_usec - starting.tv_usec) / 1000.0; // us to ms
+    printf("%d.%03d\n", elapsedTime / 1000, elapsedTime % 1000);
+
     printf("Done\n\n");
+}
+
+void SearchEngine::printFrequencyList()
+{
+    for (auto res : match) {
+        for (auto piece : res.first) {
+            int ret = write(fileManager->resultHelper->fd,
+                            fileManager->keywordHelper->dictionary[piece].buffer,
+                            fileManager->keywordHelper->dictionary[piece].bytes);
+
+            if (ret == -1) {
+                perror("write() error");
+                exit(1);
+            }
+        }
+
+        {
+            char output[111];
+            sprintf(output, ": %d\n", res.second);
+
+            int ret = write(fileManager->resultHelper->fd, output, strlen(output));
+
+            if (ret == -1) {
+                perror("write() error");
+                exit(1);
+            }
+        }
+    }
+}
+
+void SearchEngine::loadFilesToMemory()
+{
+    loadKeywords();
+    loadText();
 }

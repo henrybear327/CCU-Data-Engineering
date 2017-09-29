@@ -11,23 +11,19 @@ public:
     SearchEngine(FileManager *_fileManager)
     {
         fileManager = _fileManager;
-        loadKeywords();
-        loadText();
     }
 
+    void loadFilesToMemory();
     void performTextSearch();
-
-    std::map<std::vector<int>, int> match;
-
-    FileManager *fileManager;
+    void printFrequencyList();
 
 private:
     void loadKeywords();
     void loadText();
 
-    // returns the longest keyword that is matched
-    int searchKeywordFromIndex(int fd, int offset);
-
     std::vector<int> text;
+    std::map<std::vector<int>, int> match;
+
+    FileManager *fileManager;
 };
 #endif
