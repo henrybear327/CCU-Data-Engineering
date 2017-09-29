@@ -3,7 +3,9 @@
 
 #include "FileManager.h"
 #include <map>
+#include <string>
 #include <unistd.h>
+#include <unordered_map>
 #include <vector>
 
 struct SearchEngine {
@@ -21,8 +23,15 @@ private:
     void loadKeywords();
     void loadText();
 
+#ifdef VECTORBASED
     std::vector<int> text;
     std::map<std::vector<int>, int> match;
+#endif
+
+#ifdef STRINGBASED
+    std::string text;
+    std::unordered_map<std::string, int> match;
+#endif
 
     FileManager *fileManager;
 };

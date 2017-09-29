@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -17,11 +18,23 @@ void SearchEngine::performTextSearch()
     printf("Performing keyword searching...\n");
 
     for (int i = 0; i < (int)text.size(); i++) {
-        // printf("%d: %d\n", i, text[i]);
-
+// printf("%d: %d\n", i, text[i]);
+#ifdef VECTORBASED
         std::vector<int> candidate;
+#endif
+
+#ifdef STRINGBASED
+        std::string candidate;
+#endif
         for (int j = 0; i + j < (int)text.size() && j < 7; j++) {
+#ifdef VECTORBASED
             candidate.push_back(text[i + j]);
+#endif
+
+#ifdef STRINGBASED
+            // candidate += std::to_string(text[i + j]);
+            candidate += text[i + j];
+#endif
         }
 
         for (int j = (int)candidate.size(); j >= 2; j--) {
@@ -31,7 +44,8 @@ void SearchEngine::performTextSearch()
             // }
             // puts("");
 
-            if (match.find(candidate) != match.end()) {
+            auto it = match.find(candidate);
+            if (it != match.end()) {
                 // printf("Matched at %d: ", i);
                 // {
                 //     char location[111];
@@ -60,7 +74,8 @@ void SearchEngine::performTextSearch()
                 //     }
                 // }
 
-                match[candidate]++;
+                // match[candidate]++;
+                it->second++;
                 i += (j - 1);
                 break;
             }
@@ -82,7 +97,15 @@ void SearchEngine::loadKeywords()
 
     while (1) {
         bool terminate = false;
+
+#ifdef VECTORBASED
         std::vector<int> tmp;
+#endif
+
+#ifdef STRINGBASED
+        std::string tmp;
+#endif
+
         for (int i = 0, code = fileManager->keywordHelper->extractWord();
              code != 10; i++, code = fileManager->keywordHelper->extractWord()) {
             if (code == 0) {
@@ -90,7 +113,13 @@ void SearchEngine::loadKeywords()
                 break;
             }
 
+#ifdef VECTORBASED
             tmp.push_back(code);
+#endif
+
+#ifdef STRINGBASED
+            tmp += std::to_string(code);
+#endif
         }
 
         if (terminate)
@@ -113,7 +142,14 @@ void SearchEngine::loadText()
 
     for (int code = fileManager->textHelper->extractWord(); code != 0;
          code = fileManager->textHelper->extractWord()) {
+
+#ifdef VECTORBASED
         text.push_back(code);
+#endif
+
+#ifdef STRINGBASED
+        text += std::to_string(code);
+#endif
     }
 
     gettimeofday(&ending, NULL);
