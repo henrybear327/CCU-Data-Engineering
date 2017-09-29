@@ -38,7 +38,7 @@ struct Word {
 
 struct UTF8Helper {
 public:
-    UTF8Helper(int _fd);
+    UTF8Helper(int _fd, bool needLoading);
 
     int extractWord();
 
@@ -46,6 +46,7 @@ public:
     int fd;
 
 private:
+    void loadFileToMemory();
     unsigned char getNext();
     bool isLoaded = false;
     std::vector<unsigned char> originalData;

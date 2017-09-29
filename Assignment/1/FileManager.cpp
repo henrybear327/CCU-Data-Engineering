@@ -32,21 +32,21 @@ FileManager::FileManager(std::string _keywordFile, std::string _textFile,
         perror(ANSI_COLOR_RED "Error opening keyword file");
         exit(1);
     }
-    keywordHelper = new UTF8Helper(keyword_fd);
+    keywordHelper = new UTF8Helper(keyword_fd, true);
 
     int text_fd = open(textFile.c_str(), O_RDONLY);
     if (text_fd == -1) {
         perror(ANSI_COLOR_RED "Error opening text file");
         exit(1);
     }
-    textHelper = new UTF8Helper(text_fd);
+    textHelper = new UTF8Helper(text_fd, true);
 
     int result_fd = open(resultFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0600);
     if (result_fd == -1) {
         perror(ANSI_COLOR_RED "Error creating result file");
         exit(1);
     }
-    resultHelper = new UTF8Helper(result_fd);
+    resultHelper = new UTF8Helper(result_fd, false);
 
     printf("Done loading files\n\n" ANSI_COLOR_RESET);
 }

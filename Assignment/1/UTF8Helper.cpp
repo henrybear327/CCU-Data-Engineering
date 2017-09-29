@@ -6,36 +6,40 @@
 
 #define BUFFER_SIZE 100000
 
-UTF8Helper::UTF8Helper(int _fd)
+UTF8Helper::UTF8Helper(int _fd, bool needLoading)
 {
     fd = _fd;
     isLoaded = false;
+
+    if (needLoading)
+        loadFileToMemory();
 }
 
-unsigned char UTF8Helper::getNext()
+void UTF8Helper::loadFileToMemory()
 {
-    if (isLoaded == false) {
-        isLoaded = !isLoaded;
+    isLoaded = !isLoaded;
 
-        unsigned char buffer[BUFFER_SIZE];
+    unsigned char buffer[BUFFER_SIZE];
 
-        while (1) {
-            int ret = read(fd, buffer, BUFFER_SIZE);
-            if (ret == -1) {
-                // error
-                perror("Read() error");
-                exit(1);
-            } else if (ret == 0) {
-                // EOF
-                break;
-            }
+    while (1) {
+        int ret = read(fd, buffer, BUFFER_SIZE);
+        if (ret == -1) {
+            // error
+            perror("Read() error");
+            exit(1);
+        } else if (ret == 0) {
+            // EOF
+            break;
+        }
 
-            for (int i = 0; i < ret; i++) {
-                originalData.push_back(buffer[i]);
-            }
+        for (int i = 0; i < ret; i++) {
+            originalData.push_back(buffer[i]);
         }
     }
+}
 
+inline unsigned char UTF8Helper::getNext()
+{
     // printf("original %d\n", originalData[currentPosition]);
     return originalData[currentPosition++];
 }
