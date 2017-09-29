@@ -36,6 +36,7 @@ void UTF8Helper::loadFileToMemory()
             originalData.push_back(buffer[i]);
         }
     }
+    originalData.shrink_to_fit();
 }
 
 inline unsigned char UTF8Helper::getNext()
