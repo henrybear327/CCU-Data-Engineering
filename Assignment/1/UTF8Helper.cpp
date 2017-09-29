@@ -4,25 +4,46 @@
 #include <cstdlib>
 #include <unistd.h>
 
+#define BUFFER_SIZE 100000
+
 UTF8Helper::UTF8Helper(int _fd)
 {
     fd = _fd;
+    isLoaded = false;
+}
+
+unsigned char UTF8Helper::getNext()
+{
+    if (isLoaded == false) {
+        isLoaded = !isLoaded;
+
+        unsigned char buffer[BUFFER_SIZE];
+
+        while (1) {
+            int ret = read(fd, buffer, BUFFER_SIZE);
+            if (ret == -1) {
+                // error
+                perror("Read() error");
+                exit(1);
+            } else if (ret == 0) {
+                // EOF
+                break;
+            }
+
+            for (int i = 0; i < ret; i++) {
+                originalData.push_back(buffer[i]);
+            }
+        }
+    }
+
+    // printf("original %d\n", originalData[currentPosition]);
+    return originalData[currentPosition++];
 }
 
 int UTF8Helper::determineWordLength()
 {
-    unsigned char buffer[4];
-    {
-        int ret = read(fd, buffer, 1);
-        if (ret == -1) {
-            // error
-            perror("Read() error");
-            exit(1);
-        } else if (ret == 0) {
-            // EOF
-            return 0;
-        }
-    }
+    unsigned char buffer[4] = {0};
+    buffer[0] = getNext();
 
     int decodedWord = 0;
     int bytes;
@@ -34,32 +55,15 @@ int UTF8Helper::determineWordLength()
     } else if (((buffer[0] >> 5) & 7) == 6) {
         // printf("Number of bytes %d\n", 2);
 
-        int ret = read(fd, buffer + 1, 1);
-        if (ret == -1) {
-            // error
-            perror("Read() error");
-            exit(1);
-        } else if (ret == 0) {
-            printf(ANSI_COLOR_RED
-                   "Error decoding utf8 (missing bytes)\n" ANSI_COLOR_RESET);
-            exit(1);
-        }
+        buffer[1] = getNext();
 
         decodedWord = ((buffer[0] & 0x1F) << 6) | (buffer[1] & 0x3F);
         bytes = 2;
     } else if (((buffer[0] >> 4) & 15) == 14) {
         // printf("Number of bytes %d\n", 3);
 
-        int ret = read(fd, buffer + 1, 2);
-        if (ret == -1) {
-            // error
-            perror("Read() error");
-            exit(1);
-        } else if (ret == 0) {
-            printf(ANSI_COLOR_RED
-                   "Error decoding utf8 (missing bytes)\n" ANSI_COLOR_RESET);
-            exit(1);
-        }
+        buffer[1] = getNext();
+        buffer[2] = getNext();
 
         decodedWord = ((buffer[0] & 0x0F) << 12) | ((buffer[1] & 0x3F) << 6) |
                       (buffer[2] & 0x3f);
@@ -68,16 +72,9 @@ int UTF8Helper::determineWordLength()
     } else if (((buffer[0] >> 3) & 31) == 30) {
         // printf("Number of bytes %d\n", 4);
 
-        int ret = read(fd, buffer + 1, 3);
-        if (ret == -1) {
-            // error
-            perror("Read() error");
-            exit(1);
-        } else if (ret == 0) {
-            printf(ANSI_COLOR_RED
-                   "Error decoding utf8 (missing bytes)\n" ANSI_COLOR_RESET);
-            exit(1);
-        }
+        buffer[1] = getNext();
+        buffer[2] = getNext();
+        buffer[3] = getNext();
 
         decodedWord = ((buffer[0] & 0x07) << 18) | ((buffer[1] & 0x3F) << 12) |
                       ((buffer[2] & 0x3f) << 6) | ((buffer[3] & 0x3f));
@@ -90,10 +87,11 @@ int UTF8Helper::determineWordLength()
 
     Word word(buffer, bytes);
     dictionary[decodedWord] = word;
+    // printf("decoded %d\n", decodedWord);
     return decodedWord;
 }
 
 int UTF8Helper::extractWord()
 {
-    return this->determineWordLength();
+    return determineWordLength();
 }

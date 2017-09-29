@@ -20,6 +20,7 @@ Perform whatever you want
 #define UTF8_HELPER_H
 
 #include <map>
+#include <vector>
 
 struct Word {
     Word() {}
@@ -45,6 +46,11 @@ public:
     int fd;
 
 private:
+    unsigned char getNext();
+    bool isLoaded = false;
+    std::vector<unsigned char> originalData;
+    int currentPosition = 0;
+
     int determineWordLength();
 };
 

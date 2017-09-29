@@ -10,7 +10,10 @@
 
 void SearchEngine::performTextSearch()
 {
-    // TODO: add timer
+    struct timeval starting, ending;
+    int elapsedTime;
+    gettimeofday(&starting, NULL);
+
     printf("Performing keyword searching...\n");
 
     for (int i = 0; i < (int)text.size(); i++) {
@@ -66,6 +69,11 @@ void SearchEngine::performTextSearch()
     }
 
     printf("Done\n");
+
+    gettimeofday(&ending, NULL);
+    elapsedTime = (ending.tv_sec - starting.tv_sec) * 1000.0;    // sec to ms
+    elapsedTime += (ending.tv_usec - starting.tv_usec) / 1000.0; // us to ms
+    printf("%d.%03d\n", elapsedTime / 1000, elapsedTime % 1000);
 }
 
 void SearchEngine::loadKeywords()
