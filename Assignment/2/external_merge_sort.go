@@ -1,14 +1,9 @@
 /*
-Partition sort
+Merge sort
 
 Procedures:
-	1. Get pivot
-	2. Binary search
-	3. Sort chunks (merge sort, parallel)
-	4. Merge file
-
-TODO / Restrictions:
-	1. Chunk size must not exceed available memory
+	1. Split data into chunks, sort before write
+	2. Winner tree
 */
 
 package main
@@ -33,8 +28,6 @@ type ProgramArgument struct {
 	useChunkSize          *bool
 	preserveInputFile     *bool
 	preserveTemporaryFile *bool
-
-	// pivots []string
 }
 
 var config ProgramArgument
@@ -49,8 +42,8 @@ func parseCommandLineArgument() {
 
 	config.totalChunks = flag.Int("chunks", 1024, "Minimal chunks to be created")
 
-	config.preserveInputFile = flag.Bool("pi", false, "Set to true to preserve the input file")
-	config.preserveTemporaryFile = flag.Bool("pt", false, "Set to true to preserve the temporary file")
+	config.preserveInputFile = flag.Bool("pi", true, "Set to true to preserve the input file")
+	config.preserveTemporaryFile = flag.Bool("pt", true, "Set to true to preserve the temporary file")
 
 	// parse flags
 	flag.Parse()
@@ -142,11 +135,11 @@ func splitDataIntoChunks() {
 	fmt.Println("Split data into chunks")
 
 	/*
-		For merge sort...
+		For merge sort
 
 		- Open the input file
 		- Split the input file into k chunk files
-			- Record the first record of each chunk
+			- Sort before writing out
 	*/
 
 	inputFile := openFile(*config.inputFilename, "Input file is not found!")
@@ -164,21 +157,11 @@ func splitDataIntoChunks() {
 
 	buffer := make([]string, 0)
 	for scanner.Scan() {
-		// if tmpFileFd == nil {
-		// 	tmpFileFd = createTempFile(chunkIndex)
-		// }
-
 		str := scanner.Text()
 		str += "\n"
 		fmt.Printf("%v", str) // Println will add back the final '\n'
 
-		// if accumulatedSize == 0 {
-		// 	// this is the pivot
-		// 	config.pivots[chunkIndex] = str
-		// }
-
 		buffer = append(buffer, str)
-		// tmpFileFd.WriteString(str)
 
 		accumulatedSize += len(str)
 
@@ -208,26 +191,6 @@ func splitDataIntoChunks() {
 	}
 
 	*config.totalChunks = chunkIndex
-	// fmt.Printf("\n===== pivot(s) ====\n")
-	// for i := 0; i < *config.totalChunks; i++ {
-	// 	fmt.Printf("%v", config.pivots[i])
-	// }
-	// fmt.Printf("================\n\n")
-}
-
-func sortChunks() {
-	fmt.Println("Sort chunks")
-
-	/*
-		For every chunk file
-		- Open file
-		- Read file
-		- Sort file
-	*/
-
-	// for i := 0; i < *config.totalChunks; i++ {
-	// 	tmpFile := openTempFile(i)
-	// }
 }
 
 func mergeChunks() {
@@ -235,19 +198,38 @@ func mergeChunks() {
 
 	/*
 		Merge all chunks into one
-
-		Handle deleting original file, temporary files
 	*/
 }
 
 func cleanup() {
 	fmt.Println("Cleanup")
+
+	if *config.preserveInputFile == false {
+		fmt.Println("Input file is being removed...")
+		err := os.Remove(*config.inputFilename)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Done")
+	}
+
+	if *config.preserveTemporaryFile == false {
+		fmt.Println("Temporary files are being removed...")
+		for i := 0; i < *config.totalChunks; i++ {
+			filename := *config.temporaryFilePath + "tmp_" + strconv.FormatInt(int64(i), 10)
+			fmt.Println("Removing " + filename)
+			err := os.Remove(filename)
+			if err != nil {
+				panic(err)
+			}
+		}
+		fmt.Println("Done")
+	}
 }
 
 func main() {
 	parseCommandLineArgument()
 	splitDataIntoChunks()
-	sortChunks()
 	mergeChunks()
 	cleanup()
 }
