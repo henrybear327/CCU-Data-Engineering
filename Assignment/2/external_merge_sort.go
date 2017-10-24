@@ -90,12 +90,12 @@ func adjustChunkFactors(fileSize int) {
 }
 
 func openTempFile(index int) *os.File {
-	filename := "tmp_" + strconv.FormatInt(int64(index), 10)
+	filename := *config.temporaryFilePath + "/tmp_" + strconv.FormatInt(int64(index), 10)
 	return openFile(*config.temporaryFilePath+"/"+filename, "Opening tmpfile error")
 }
 
 func createTempFile(index int) *os.File {
-	filename := "tmp_" + strconv.FormatInt(int64(index), 10)
+	filename := *config.temporaryFilePath + "/tmp_" + strconv.FormatInt(int64(index), 10)
 	file, err := os.Create(filename)
 	if err != nil {
 		panic(err)
@@ -219,7 +219,7 @@ func cleanup() {
 	if *config.preserveTemporaryFile == false {
 		fmt.Println("Temporary files are being removed...")
 		for i := 0; i < *config.totalChunks; i++ {
-			filename := *config.temporaryFilePath + "tmp_" + strconv.FormatInt(int64(i), 10)
+			filename := *config.temporaryFilePath + "/tmp_" + strconv.FormatInt(int64(i), 10)
 			fmt.Println("Removing " + filename)
 			err := os.Remove(filename)
 			if err != nil {
