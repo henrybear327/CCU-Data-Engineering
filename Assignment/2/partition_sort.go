@@ -25,8 +25,8 @@ type ProgramArgument struct {
 	outputFilename    *string
 	temporaryFilePath *string
 
-	chunkSize   *int
-	totalChunks *int
+	chunkSize   int64
+	totalChunks *int64
 
 	useChunkSize          *bool
 	preserveInputFile     *bool
@@ -39,16 +39,14 @@ func parseCommandLineArgument() {
 	fmt.Println("Parse command line argument")
 
 	// Define flags
-	programArgument.inputFilename = flag.String("input", "in", "The file to be sorted")
-	programArgument.outputFilename = flag.String("output", "out", "The file to store sorted result")
-	programArgument.temporaryFilePath = flag.String("tempPath", "/tmp", "The path for generated temporary files to be stored")
+	programArgument.inputFilename = flag.String("i", "in", "The file to be sorted")
+	programArgument.outputFilename = flag.String("o", "out", "The file to store sorted result")
+	programArgument.temporaryFilePath = flag.String("tmp", "/tmp", "The path for generated temporary files to be stored")
 
-	programArgument.chunkSize = flag.Int("chunkSize", 1024, "Chunk size in KB")
-	programArgument.totalChunks = flag.Int("totalChunks", 1024, "Total chunks to be created")
+	programArgument.totalChunks = flag.Int64("chunks", 1024, "Minimal chunks to be created")
 
-	programArgument.useChunkSize = flag.Bool("useChunkSize", true, "Use chunk size to split the input file or not")
-	programArgument.preserveInputFile = flag.Bool("preserveInputFile", false, "Preserve the input file or not")
-	programArgument.preserveTemporaryFile = flag.Bool("preserveTemporaryFile", false, "Preserve the temporary file or not")
+	programArgument.preserveInputFile = flag.Bool("pi", false, "Set to true to preserve the input file")
+	programArgument.preserveTemporaryFile = flag.Bool("pt", false, "Set to true to preserve the temporary file")
 
 	// parse flags
 	flag.Parse()
@@ -58,9 +56,7 @@ func parseCommandLineArgument() {
 	fmt.Println("input filename: " + *programArgument.inputFilename)
 	fmt.Println("output filename: " + *programArgument.outputFilename)
 	fmt.Println("temporary file path: " + *programArgument.temporaryFilePath)
-	fmt.Println("chunk size in kb: " + strconv.Itoa(*programArgument.chunkSize))
-	fmt.Println("total chunks to be created: " + strconv.Itoa(*programArgument.totalChunks))
-	fmt.Println("Use chunk size for splitting: " + strconv.FormatBool(*programArgument.useChunkSize))
+	fmt.Println("total chunks to be created: " + strconv.FormatInt(*programArgument.totalChunks, 10))
 	fmt.Println("preserve input file: " + strconv.FormatBool(*programArgument.preserveInputFile))
 	fmt.Println("preserve temporary file: " + strconv.FormatBool(*programArgument.preserveTemporaryFile))
 	fmt.Printf("=================================================\n\n")
@@ -75,26 +71,24 @@ func openFile(filename string) *os.File {
 	}
 
 	fmt.Println("File \"" + filename + "\" opened successfully")
-	defer file.Close()
-
-	// // get the file size
-	// stat, err := file.Stat()
-	// if err != nil {
-	// 	return
-	// }
-	// fmt.Println(stat.Name())
-	// fmt.Println(stat.Size())
-
-	// // read the file
-	// bs := make([]byte, stat.Size())
-	// _, err = file.Read(bs)
-	// if err != nil {
-	// 	return
-	// }
-	// str := string(bs)
-	// fmt.Println(str)
 
 	return file
+}
+
+func setChunkFactors(fileSize int64) {
+	fmt.Printf("\n=================================================\n")
+	if fileSize < *programArgument.totalChunks {
+		*programArgument.totalChunks = fileSize
+		fmt.Println("Total chunks to be created is updated to " + strconv.FormatInt(*programArgument.totalChunks, 10))
+	}
+
+	programArgument.chunkSize = fileSize / *programArgument.totalChunks
+	if fileSize%*programArgument.totalChunks != 0 {
+		*programArgument.totalChunks++
+		fmt.Println("Total chunks to be created is updated to " + strconv.FormatInt(*programArgument.totalChunks, 10))
+	}
+	fmt.Printf("The expected chunk size is %v kilobyte(s)\n", programArgument.chunkSize)
+	fmt.Printf("=================================================\n\n")
 }
 
 func splitDataIntoChunks() {
@@ -106,13 +100,14 @@ func splitDataIntoChunks() {
 			- Record the first record of each chunk
 	*/
 
-	inputFd := openFile(*programArgument.inputFilename)
+	inputFile := openFile(*programArgument.inputFilename)
 
-	if inputFd != nil {
-		fmt.Println("Ok")
-	} else {
-		fmt.Println("Error")
+	stat, err := inputFile.Stat()
+	if err != nil {
+		panic(err)
 	}
+
+	setChunkFactors(stat.Size())
 }
 
 func sortChunks() {
@@ -136,9 +131,14 @@ func mergeChunks() {
 	*/
 }
 
+func cleanup() {
+	fmt.Println("Cleanup")
+}
+
 func main() {
 	parseCommandLineArgument()
 	splitDataIntoChunks()
 	sortChunks()
 	mergeChunks()
+	cleanup()
 }
