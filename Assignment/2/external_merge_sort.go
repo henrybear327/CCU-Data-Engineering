@@ -230,9 +230,23 @@ func cleanup() {
 	}
 }
 
+func readTest() {
+	inputFile := openFile(*config.inputFilename, "Input file is not found!")
+
+	scanner := bufio.NewScanner(inputFile)
+
+	for scanner.Scan() {
+		str := scanner.Text()
+		str += "\n"
+		fmt.Printf("%v", str) // Println will add back the final '\n'
+	}
+}
+
 func main() {
 	parseCommandLineArgument()
-	splitDataIntoChunks()
-	mergeChunks()
-	cleanup()
+	// splitDataIntoChunks()
+	// mergeChunks()
+	// cleanup()
+
+	readTest()
 }
