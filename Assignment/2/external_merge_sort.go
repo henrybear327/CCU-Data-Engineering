@@ -159,7 +159,7 @@ func splitDataIntoChunks() {
 	for scanner.Scan() {
 		str := scanner.Text()
 		str += "\n"
-		fmt.Printf("%v", str) // Println will add back the final '\n'
+		// fmt.Printf("%v", str) // Println will add back the final '\n'
 
 		buffer = append(buffer, str)
 
@@ -198,6 +198,9 @@ func mergeChunks() {
 
 	/*
 		Merge all chunks into one
+
+		- open all file descriptors at once
+		- perform winner tree
 	*/
 }
 
