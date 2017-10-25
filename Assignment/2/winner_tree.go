@@ -1,3 +1,7 @@
+/*
+Confirm that all strings are read -> write to file and see if it's the same as the input file
+*/
+
 package main
 
 import (
@@ -47,9 +51,11 @@ func (w *WinnerTreeData) winnerTreeInternalNodeUpdate(i int) {
 }
 
 func (w *WinnerTreeData) winnerTreePrint() {
+	fmt.Printf("\n=====================================\n")
 	for i := 0; i < w.sz; i++ {
 		fmt.Printf("%v: %v %v\n", i, w.data[i].origin, w.data[i].value)
 	}
+	fmt.Printf("=====================================\n\n")
 }
 
 func (w *WinnerTreeData) winnerTreeInit() {
@@ -61,7 +67,7 @@ func (w *WinnerTreeData) winnerTreeInit() {
 	for i := 0; int(1<<uint(i)) <= total; i++ {
 		w.sz = int(1 << uint(i))
 	}
-	w.sz <<= 1
+	w.sz <<= 2
 	fmt.Printf("Winner tree size %v (%v)\n", w.sz, total)
 
 	// 1-based
