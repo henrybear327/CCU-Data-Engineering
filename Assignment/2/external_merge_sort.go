@@ -45,7 +45,7 @@ func parseCommandLineArgument() {
 	config.totalChunks = flag.Int("chunks", 1024, "Minimal chunks to be created")
 
 	config.preserveInputFile = flag.Bool("pi", true, "Set to true to preserve the input file")
-	config.preserveTemporaryFile = flag.Bool("pt", true, "Set to true to preserve the temporary file")
+	config.preserveTemporaryFile = flag.Bool("pt", false, "Set to true to preserve the temporary file")
 
 	// parse flags
 	flag.Parse()
@@ -93,7 +93,7 @@ func adjustChunkFactors(fileSize int) {
 
 func openTempFile(index int) *os.File {
 	filename := *config.temporaryFilePath + "/tmp_" + strconv.FormatInt(int64(index), 10)
-	return openFile(*config.temporaryFilePath+"/"+filename, "Opening tmpfile error")
+	return openFile(filename, "Opening tmpfile error")
 }
 
 func createTempFile(index int) *os.File {
@@ -186,7 +186,6 @@ func splitDataIntoChunks() {
 		fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 
 		sort.Strings(buffer)
-
 		writeTempFile(buffer, chunkIndex)
 
 		chunkIndex++ // if accumulatedSize is 0, means the chunkIndex isn't used yet
@@ -204,8 +203,13 @@ func mergeChunks() {
 		- open all file descriptors at once
 		- perform winner tree
 	*/
+	var winnerTreeData WinnerTreeData
+	winnerTreeData.winnerTreeInit()
 
-	initWinnerTree()
+	for winnerTreeData.winnerTreeIsEmpty() == false {
+		fmt.Println(winnerTreeData.winnerTreeTop())
+		winnerTreeData.winnerTreePop()
+	}
 }
 
 func cleanup() {
