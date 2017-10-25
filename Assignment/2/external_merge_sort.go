@@ -175,8 +175,6 @@ func splitDataIntoChunks() {
 			fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 			accumulatedSize = 0
 
-			sort.Strings(buffer)
-
 			writeTempFile(buffer, chunkIndex)
 
 			chunkIndex++
@@ -189,7 +187,6 @@ func splitDataIntoChunks() {
 	if accumulatedSize > 0 {
 		fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 
-		sort.Strings(buffer)
 		writeTempFile(buffer, chunkIndex)
 
 		chunkIndex++ // if accumulatedSize is 0, means the chunkIndex isn't used yet
