@@ -131,8 +131,9 @@ func writeTempFile(buffer []string, chunkIndex int) {
 	sort.Strings(buffer)
 
 	tmpFileFd := createTempFile(chunkIndex)
+	fd := bufio.NewWriter(tmpFileFd)
 	for i := 0; i < len(buffer); i++ {
-		tmpFileFd.WriteString(buffer[i])
+		fd.WriteString(buffer[i])
 	}
 	closeTempFile(&tmpFileFd)
 }
