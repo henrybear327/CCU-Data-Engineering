@@ -46,5 +46,5 @@ for i in fileList:
     result.append([sortTime, myTime])
 
 for i, res in enumerate(result):
-    inf = in_file.format(i)
-    print("{0}MB: {1} vs {2}".format(inf, res[0], res[1]))
+    inf = in_file.format(fileList[i])
+    print("{0}: {1} vs {2}".format(inf, res[0], res[1]))
