@@ -28,7 +28,7 @@ func winnerTreeRightChild(index int) int {
 	return index*2 + 1
 }
 
-func (w WinnerTreeData) winnerTreeInternalNodeUpdate(i int) {
+func (w *WinnerTreeData) winnerTreeInternalNodeUpdate(i int) {
 	if w.data[winnerTreeLeftChild(i)].origin == -1 {
 		w.data[i].origin = w.data[winnerTreeRightChild(i)].origin
 		w.data[i].value = w.data[winnerTreeRightChild(i)].value
@@ -46,7 +46,13 @@ func (w WinnerTreeData) winnerTreeInternalNodeUpdate(i int) {
 	}
 }
 
-func (w WinnerTreeData) winnerTreeInit() {
+func (w *WinnerTreeData) winnerTreePrint() {
+	for i := 0; i < w.sz; i++ {
+		fmt.Printf("%v: %v %v\n", i, w.data[i].origin, w.data[i].value)
+	}
+}
+
+func (w *WinnerTreeData) winnerTreeInit() {
 	total := *config.totalChunks
 
 	// Underlying array size calculation
@@ -91,20 +97,24 @@ func (w WinnerTreeData) winnerTreeInit() {
 		}
 	}
 
-	for i := 0; i < w.sz; i++ {
-		fmt.Printf("%v: %v %v\n", i, w.data[i].origin, w.data[i].value)
-	}
+	w.winnerTreePrint()
 }
 
-func (w WinnerTreeData) winnerTreeUpdate() {
+func (w *WinnerTreeData) winnerTreeUpdate() {
 	if w.winnerTreeIsEmpty() == false {
 		index := w.data[1].origin
+		// fmt.Printf("index %v\n", index)
 
 		if w.sc[index].Scan() == false {
-			w.data[index].origin = -1
-			w.data[index].value = ""
+			w.data[index+w.sz/2].origin = -1
+			w.data[index+w.sz/2].value = ""
+		} else {
+			w.data[index+w.sz/2].value = w.sc[index].Text()
 		}
+
+		index += w.sz / 2
 		index /= 2
+		// fmt.Printf("new index %v\n", index)
 
 		for ; index >= 1; index /= 2 {
 			w.winnerTreeInternalNodeUpdate(index)
@@ -112,14 +122,18 @@ func (w WinnerTreeData) winnerTreeUpdate() {
 	}
 }
 
-func (w WinnerTreeData) winnerTreeIsEmpty() bool {
+func (w *WinnerTreeData) winnerTreeSize() int {
+	return len(w.data)
+}
+
+func (w *WinnerTreeData) winnerTreeIsEmpty() bool {
 	if w.data[1].origin == -1 {
 		return true
 	}
 	return false
 }
 
-func (w WinnerTreeData) winnerTreeTop() string {
+func (w *WinnerTreeData) winnerTreeTop() string {
 	if w.winnerTreeIsEmpty() == false {
 		return w.data[1].value
 	}
@@ -127,9 +141,10 @@ func (w WinnerTreeData) winnerTreeTop() string {
 	panic("Topping a empty winner tree")
 }
 
-func (w WinnerTreeData) winnerTreePop() {
+func (w *WinnerTreeData) winnerTreePop() {
 	if w.winnerTreeIsEmpty() == false {
 		w.winnerTreeUpdate()
+		return
 	}
 
 	panic("Popping a empty winner tree")

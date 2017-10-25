@@ -207,9 +207,11 @@ func mergeChunks() {
 	winnerTreeData.winnerTreeInit()
 
 	for winnerTreeData.winnerTreeIsEmpty() == false {
-		fmt.Println(winnerTreeData.winnerTreeTop())
+		fmt.Println("Top = " + winnerTreeData.winnerTreeTop())
 		winnerTreeData.winnerTreePop()
+		// winnerTreeData.winnerTreePrint()
 	}
+	// fmt.Println(winnerTreeData.winnerTreeSize())
 }
 
 func cleanup() {
