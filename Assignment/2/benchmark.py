@@ -35,10 +35,16 @@ def check(my, ans):
     cmd = "cmp {0} {1}".format(my, ans)
     run(cmd, shell=True)
 
+result = []
 for i in fileList:
-    time_bash_sort(in_file.format(i), out_file.format(i))
-    time_my_sort(in_file.format(i), my_out_file, 1000)
+    sortTime = time_bash_sort(in_file.format(i), out_file.format(i))
+    myTime = time_my_sort(in_file.format(i), my_out_file, 1000)
+    print("\n\n=====================================")
+    check(my_out_file, out_file.format(i))
+    print("=====================================")
 
-print("\n\n=====================================")
-check(my_out_file)
-print("=====================================")
+    result.append([sortTime, myTime])
+
+for i, res in enumerate(result):
+    inf = in_file.format(i)
+    printf("{0}MB: {1} vs {2}".format(inf, res[0], res[1]))
