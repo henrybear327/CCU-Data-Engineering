@@ -49,7 +49,7 @@ func parseCommandLineArgument() {
 	config.preserveInputFile = flag.Bool("pi", true, "Set to true to preserve the input file")
 	config.preserveTemporaryFile = flag.Bool("pt", false, "Set to true to preserve the temporary file")
 
-	config.onlyIO = flag.Bool("a", true, "Set to false to just run IO")
+	config.onlyIO = flag.Bool("a", false, "Set to true to just run IO")
 
 	// parse flags
 	flag.Parse()
@@ -112,6 +112,18 @@ func createTempFile(index int) *os.File {
 	return file
 }
 
+func createResultFile() *os.File {
+	filename := *config.outputFilename
+	file, err := os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Result file \"" + filename + "\" created successfully")
+
+	return file
+}
+
 func closeTempFile(file **os.File) {
 	stat, err := (*file).Stat()
 	if err != nil {
@@ -135,6 +147,7 @@ func writeTempFile(buffer []string, chunkIndex int) {
 	for i := 0; i < len(buffer); i++ {
 		fd.WriteString(buffer[i])
 	}
+	fd.Flush()
 	closeTempFile(&tmpFileFd)
 }
 
@@ -208,11 +221,20 @@ func mergeChunks() {
 	var winnerTreeData WinnerTreeData
 	winnerTreeData.winnerTreeInit()
 
+	resultFd := createResultFile()
+	fd := bufio.NewWriter(resultFd)
+
 	for winnerTreeData.winnerTreeIsEmpty() == false {
-		fmt.Println("Top = " + winnerTreeData.winnerTreeTop())
+		// fmt.Println("Top = " + winnerTreeData.winnerTreeTop())
+		fd.WriteString(winnerTreeData.winnerTreeTop() + "\n")
+
 		winnerTreeData.winnerTreePop()
 		// winnerTreeData.winnerTreePrint()
 	}
+
+	fd.Flush()
+	resultFd.Close()
+
 	// fmt.Println(winnerTreeData.winnerTreeSize())
 }
 
@@ -269,7 +291,7 @@ func main() {
 	parseCommandLineArgument()
 	splitDataIntoChunks()
 
-	if *config.onlyIO == true {
+	if *config.onlyIO == false {
 		mergeChunks()
 	}
 
