@@ -1,8 +1,7 @@
 /*
-1. Increse buffer size -> Time it!
-2. flag the generator
-3. Tree node, compare function
-4. Line 66?
+1. flag the generator
+2. Tree node, compare function
+3. Line 66?
 */
 
 package main
