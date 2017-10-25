@@ -103,7 +103,9 @@ func (w *WinnerTreeData) winnerTreeInit() {
 		}
 	}
 
-	w.winnerTreePrint()
+	if *config.isDebug {
+		w.winnerTreePrint()
+	}
 }
 
 func (w *WinnerTreeData) winnerTreeUpdate() {

@@ -31,7 +31,7 @@ type ProgramArgument struct {
 	preserveInputFile     *bool
 	preserveTemporaryFile *bool
 
-	onlyIO *bool
+	isDebug *bool
 }
 
 var config ProgramArgument
@@ -49,7 +49,7 @@ func parseCommandLineArgument() {
 	config.preserveInputFile = flag.Bool("pi", true, "Set to true to preserve the input file")
 	config.preserveTemporaryFile = flag.Bool("pt", false, "Set to true to preserve the temporary file")
 
-	config.onlyIO = flag.Bool("a", false, "Set to true to just run IO")
+	config.isDebug = flag.Bool("d", false, "Set true for debug mode")
 
 	// parse flags
 	flag.Parse()
@@ -59,9 +59,15 @@ func parseCommandLineArgument() {
 	fmt.Println("input filename: " + *config.inputFilename)
 	fmt.Println("output filename: " + *config.outputFilename)
 	fmt.Println("temporary file path: " + *config.temporaryFilePath)
+
 	fmt.Println("total chunks to be created: " + strconv.FormatInt(int64(*config.totalChunks), 10))
+
 	fmt.Println("preserve input file: " + strconv.FormatBool(*config.preserveInputFile))
 	fmt.Println("preserve temporary file: " + strconv.FormatBool(*config.preserveTemporaryFile))
+
+	fmt.Println("preserve input file: " + strconv.FormatBool(*config.preserveInputFile))
+
+	fmt.Println("debug mode: " + strconv.FormatBool(*config.isDebug))
 	fmt.Printf("=================================================\n\n")
 }
 
@@ -72,7 +78,9 @@ func openFile(filename string, errorString string) *os.File {
 		panic(errorString + " (" + filename + ")")
 	}
 
-	fmt.Println("File \"" + filename + "\" opened successfully")
+	if *config.isDebug {
+		fmt.Println("File \"" + filename + "\" opened successfully")
+	}
 
 	return file
 }
@@ -107,7 +115,9 @@ func createTempFile(index int) *os.File {
 		panic(err)
 	}
 
-	fmt.Println("tmp file \"" + filename + "\" created successfully")
+	if *config.isDebug {
+		fmt.Println("tmp file \"" + filename + "\" created successfully")
+	}
 
 	return file
 }
@@ -119,7 +129,9 @@ func createResultFile() *os.File {
 		panic(err)
 	}
 
-	fmt.Println("Result file \"" + filename + "\" created successfully")
+	if *config.isDebug {
+		fmt.Println("Result file \"" + filename + "\" created successfully")
+	}
 
 	return file
 }
@@ -135,7 +147,9 @@ func closeTempFile(file **os.File) {
 		panic(err)
 	}
 
-	fmt.Println("tmp file \"" + stat.Name() + "\" is closed successfully\n")
+	if *config.isDebug {
+		fmt.Println("tmp file \"" + stat.Name() + "\" is closed successfully\n")
+	}
 	*file = nil
 }
 
@@ -186,7 +200,10 @@ func splitDataIntoChunks() {
 		accumulatedSize += len(str)
 
 		if accumulatedSize >= config.chunkSize {
-			fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
+			if *config.isDebug {
+				fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
+			}
+
 			accumulatedSize = 0
 
 			writeTempFile(buffer, chunkIndex)
@@ -199,7 +216,9 @@ func splitDataIntoChunks() {
 		fmt.Fprintln(os.Stderr, "reading standard input:", err)
 	}
 	if accumulatedSize > 0 {
-		fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
+		if *config.isDebug {
+			fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
+		}
 
 		writeTempFile(buffer, chunkIndex)
 
@@ -234,8 +253,6 @@ func mergeChunks() {
 
 	fd.Flush()
 	resultFd.Close()
-
-	// fmt.Println(winnerTreeData.winnerTreeSize())
 }
 
 func cleanup() {
@@ -254,7 +271,10 @@ func cleanup() {
 		fmt.Println("Temporary files are being removed...")
 		for i := 0; i < *config.totalChunks; i++ {
 			filename := *config.temporaryFilePath + "/tmp_" + strconv.FormatInt(int64(i), 10)
-			fmt.Println("Removing " + filename)
+
+			if *config.isDebug {
+				fmt.Println("Removing " + filename)
+			}
 			err := os.Remove(filename)
 			if err != nil {
 				panic(err)
@@ -290,11 +310,7 @@ func readTest() {
 func main() {
 	parseCommandLineArgument()
 	splitDataIntoChunks()
-
-	if *config.onlyIO == false {
-		mergeChunks()
-	}
-
+	mergeChunks()
 	cleanup()
 
 	// readTest()
