@@ -1,12 +1,14 @@
+package main
+
 /*
+godoc -http=":6060"
+
 Merge sort
 
 Procedures:
 	1. Split data into chunks, sort before write
 	2. Winner tree
 */
-
-package main
 
 import (
 	"bufio"
@@ -202,6 +204,8 @@ func mergeChunks() {
 		- open all file descriptors at once
 		- perform winner tree
 	*/
+
+	initWinnerTree()
 }
 
 func cleanup() {
@@ -235,18 +239,29 @@ func readTest() {
 
 	scanner := bufio.NewScanner(inputFile)
 
+	buf := make([]byte, 0, 100000)
+	scanner.Buffer(buf, 100000)
+
 	for scanner.Scan() {
 		str := scanner.Text()
 		str += "\n"
 		fmt.Printf("%v", str) // Println will add back the final '\n'
+
+		// tmp := scanner.Bytes()
+		// fmt.Println(tmp)
 	}
+
+	// reader := bufio.NewReader(inputFile)
+	// for line, err := reader.ReadString('\n'); err == nil; line, err = reader.ReadString('\n') {
+	// 	fmt.Printf("%q\n", line)
+	// }
 }
 
 func main() {
 	parseCommandLineArgument()
-	// splitDataIntoChunks()
-	// mergeChunks()
-	// cleanup()
+	splitDataIntoChunks()
+	mergeChunks()
+	cleanup()
 
-	readTest()
+	// readTest()
 }
