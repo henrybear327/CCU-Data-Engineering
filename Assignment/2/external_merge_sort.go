@@ -97,7 +97,7 @@ func adjustChunkFactors(fileSize int) {
 		*config.totalChunks++
 		fmt.Println("Total chunks to be created is updated to " + strconv.FormatInt(int64(*config.totalChunks), 10))
 	}
-	fmt.Printf("The expected chunk size is %v kilobyte(s)\n", config.chunkSize)
+	fmt.Printf("The expected chunk size is %v byte(s)\n", config.chunkSize)
 
 	// config.pivots = make([]string, *config.totalChunks)
 	fmt.Printf("=================================================\n\n")

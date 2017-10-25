@@ -47,4 +47,4 @@ for i in fileList:
 
 for i, res in enumerate(result):
     inf = in_file.format(i)
-    printf("{0}MB: {1} vs {2}".format(inf, res[0], res[1]))
+    print("{0}MB: {1} vs {2}".format(inf, res[0], res[1]))
