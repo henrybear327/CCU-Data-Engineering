@@ -1,5 +1,8 @@
 /*
-Confirm that all strings are read -> write to file and see if it's the same as the input file
+1. Increse buffer size -> Time it!
+2. flag the generator
+3. Tree node, compare function
+4. Line 66?
 */
 
 package main
@@ -9,8 +12,6 @@ import (
 	"fmt"
 	"os"
 )
-
-// 1-based!
 
 type TreeNode struct {
 	value  string
@@ -72,7 +73,7 @@ func (w *WinnerTreeData) winnerTreeInit() {
 
 	// 1-based
 	// Prepare fd and Scanner
-	// TODO: do we need to call make()?
+	// TODO: do we need to call make() -> yes, but give size 0!
 	w.fd = make([]*os.File, 0)
 	w.sc = make([]*bufio.Scanner, 0)
 	for i := 0; i < w.sz/2; i++ {
