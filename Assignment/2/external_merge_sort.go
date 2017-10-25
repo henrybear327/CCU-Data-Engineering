@@ -229,7 +229,7 @@ func mergeChunks() {
 		fd.WriteString(winnerTreeData.winnerTreeTop() + "\n")
 
 		winnerTreeData.winnerTreePop()
-		winnerTreeData.winnerTreePrint()
+		// winnerTreeData.winnerTreePrint()
 	}
 
 	fd.Flush()
