@@ -30,6 +30,8 @@ type ProgramArgument struct {
 	useChunkSize          *bool
 	preserveInputFile     *bool
 	preserveTemporaryFile *bool
+
+	onlyIO *bool
 }
 
 var config ProgramArgument
@@ -46,6 +48,8 @@ func parseCommandLineArgument() {
 
 	config.preserveInputFile = flag.Bool("pi", true, "Set to true to preserve the input file")
 	config.preserveTemporaryFile = flag.Bool("pt", false, "Set to true to preserve the temporary file")
+
+	config.onlyIO = flag.Bool("a", true, "Set to false to just run IO")
 
 	// parse flags
 	flag.Parse()
@@ -266,7 +270,11 @@ func readTest() {
 func main() {
 	parseCommandLineArgument()
 	splitDataIntoChunks()
-	mergeChunks()
+
+	if *config.onlyIO == true {
+		mergeChunks()
+	}
+
 	cleanup()
 
 	// readTest()
