@@ -196,7 +196,7 @@ func splitDataIntoChunks() {
 
 	scanner := bufio.NewScanner(inputFile)
 
-	buffer := make([]string, 0, 10000000)
+	buffer := make([]string, 0)
 	for scanner.Scan() {
 		start := time.Now()
 		str := scanner.Text()
@@ -219,7 +219,7 @@ func splitDataIntoChunks() {
 			writeTempFile(buffer, chunkIndex)
 
 			chunkIndex++
-			buffer = make([]string, 0, 10000000)
+			buffer = make([]string, 0)
 		}
 	}
 	if err := scanner.Err(); err != nil {
