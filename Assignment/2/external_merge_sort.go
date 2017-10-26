@@ -344,10 +344,16 @@ func readTest() {
 }
 
 func main() {
+	start := time.Now()
+
 	parseCommandLineArgument()
 	splitDataIntoChunks()
 	mergeChunks()
 	cleanup()
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	fmt.Printf("Total runtime %v\n\n", elapsed)
 
 	// readTest()
 }
