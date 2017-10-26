@@ -248,7 +248,9 @@ func splitDataIntoChunks() {
 
 	end := time.Now()
 	elapsed := end.Sub(start)
-	fmt.Printf("Time elapsed %v\n\n", elapsed)
+	fmt.Printf("Time elapsed %v\n", elapsed)
+	fmt.Printf("Time elapsed for sorting tmp %v\n", tempFileSortingTime)
+	fmt.Printf("Time elapsed for writing tmp %v\n\n", writeTempFileTime)
 }
 
 func mergeChunks() {
@@ -281,9 +283,7 @@ func mergeChunks() {
 
 	end := time.Now()
 	elapsed := end.Sub(start)
-	fmt.Printf("Time elapsed %v\n", elapsed)
-	fmt.Printf("Time elapsed for sorting tmp %v\n", tempFileSortingTime)
-	fmt.Printf("Time elapsed for writing tmp %v\n\n", writeTempFileTime)
+	fmt.Printf("Time elapsed %v\n\n", elapsed)
 }
 
 func cleanup() {
