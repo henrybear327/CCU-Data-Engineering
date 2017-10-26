@@ -5,7 +5,7 @@ using namespace std;
 
 #define tmp_files 1000
 
-void run()
+void run(char** argv)
 {
     vector<string> inp;
 
@@ -17,7 +17,7 @@ void run()
         gettimeofday(&t1, NULL);
 
         printf("Reading...\n");
-        FILE *fd = fopen("../testcase/number_500M.in", "r");
+        FILE *fd = fopen(argv[1], "r");
         char buffer[40000];
         while (fgets(buffer, 40000, fd) != NULL) {
             inp.push_back(buffer);
@@ -61,12 +61,10 @@ void run()
         gettimeofday(&t1, NULL);
 
         printf("Writing...\n");
-        FILE *ans = fopen("../testcase/number_500M.baseline.out", "w");
+        FILE *ans = fopen(argv[2], "w");
         for (auto i : inp) {
             fprintf(ans, "%s\n", i.c_str());
         }
-
-        printf("Ends!\n");
 
         // stop timer
         gettimeofday(&t2, NULL);
@@ -78,12 +76,19 @@ void run()
 
         fclose(ans);
     }
+
+    printf("Ends!\n");    
 }
 
-int main()
+int main(int argc, char** argv)
 {
-    run();
-    run();
+    if(argc < 3) {
+        printf("Please provide input and out file path\n");
+        return 1;
+    }
+
+    run(argv);
+    run(argv);
 
     return 0;
 }
