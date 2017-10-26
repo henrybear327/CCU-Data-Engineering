@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"runtime/pprof"
 	"sort"
 	"strconv"
@@ -37,6 +38,7 @@ type ProgramArgument struct {
 	isDebug *bool
 
 	cpuprofile *string
+	memprofile *string
 }
 
 var config ProgramArgument
@@ -57,6 +59,7 @@ func parseCommandLineArgument() {
 	config.isDebug = flag.Bool("d", false, "Set true for debug mode")
 
 	config.cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+	config.memprofile = flag.String("memprofile", "", "write memory profile to `file`")
 
 	// parse flags
 	flag.Parse()
@@ -316,7 +319,7 @@ func main() {
 	start := time.Now()
 	parseCommandLineArgument()
 
-	// profiling
+	// cou profiling
 	if *config.cpuprofile != "" {
 		f, err := os.Create(*config.cpuprofile)
 		if err != nil {
@@ -329,6 +332,19 @@ func main() {
 	splitDataIntoChunks()
 	mergeChunks()
 	cleanup()
+
+	// mem profiling
+	if *config.memprofile != "" {
+		f, err := os.Create(*config.memprofile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+		f.Close()
+	}
 
 	elapsed := time.Since(start)
 	fmt.Printf("Total runtime %v\n\n", elapsed)
