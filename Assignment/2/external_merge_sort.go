@@ -17,6 +17,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"time"
 )
 
 type ProgramArgument struct {
@@ -153,8 +154,21 @@ func closeTempFile(file **os.File) {
 	*file = nil
 }
 
+var tempFileSortingTime time.Duration
+var writeTempFileTime time.Duration
+
 func writeTempFile(buffer []string, chunkIndex int) {
+	// sort
+	start := time.Now()
+
 	sort.Strings(buffer)
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	tempFileSortingTime += elapsed
+
+	// write
+	start = time.Now()
 
 	tmpFileFd := createTempFile(chunkIndex)
 	fd := bufio.NewWriter(tmpFileFd)
@@ -163,10 +177,15 @@ func writeTempFile(buffer []string, chunkIndex int) {
 	}
 	fd.Flush()
 	closeTempFile(&tmpFileFd)
+
+	end = time.Now()
+	elapsed = end.Sub(start)
+	writeTempFileTime += elapsed
 }
 
 func splitDataIntoChunks() {
 	fmt.Println("Split data into chunks")
+	start := time.Now()
 
 	/*
 		For merge sort
@@ -226,9 +245,15 @@ func splitDataIntoChunks() {
 	}
 
 	*config.totalChunks = chunkIndex
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	fmt.Printf("Time elapsed %v\n\n", elapsed)
 }
 
 func mergeChunks() {
+	start := time.Now()
+
 	fmt.Println("Merge chunks")
 
 	/*
@@ -253,10 +278,17 @@ func mergeChunks() {
 
 	fd.Flush()
 	resultFd.Close()
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	fmt.Printf("Time elapsed %v\n", elapsed)
+	fmt.Printf("Time elapsed for sorting tmp %v\n", tempFileSortingTime)
+	fmt.Printf("Time elapsed for writing tmp %v\n\n", writeTempFileTime)
 }
 
 func cleanup() {
 	fmt.Println("Cleanup")
+	start := time.Now()
 
 	if *config.preserveInputFile == false {
 		fmt.Println("Input file is being removed...")
@@ -282,6 +314,10 @@ func cleanup() {
 		}
 		fmt.Println("Done")
 	}
+
+	end := time.Now()
+	elapsed := end.Sub(start)
+	fmt.Printf("Time elapsed %v\n\n", elapsed)
 }
 
 func readTest() {
