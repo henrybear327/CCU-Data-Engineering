@@ -14,7 +14,9 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"log"
 	"os"
+	"runtime/pprof"
 	"sort"
 	"strconv"
 	"time"
@@ -33,6 +35,8 @@ type ProgramArgument struct {
 	preserveTemporaryFile *bool
 
 	isDebug *bool
+
+	cpuprofile *string
 }
 
 var config ProgramArgument
@@ -51,6 +55,8 @@ func parseCommandLineArgument() {
 	config.preserveTemporaryFile = flag.Bool("pt", false, "Set to true to preserve the temporary file")
 
 	config.isDebug = flag.Bool("d", false, "Set true for debug mode")
+
+	config.cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 	// parse flags
 	flag.Parse()
@@ -308,8 +314,18 @@ func readTest() {
 
 func main() {
 	start := time.Now()
-
 	parseCommandLineArgument()
+
+	// profiling
+	if *config.cpuprofile != "" {
+		f, err := os.Create(*config.cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
 	splitDataIntoChunks()
 	mergeChunks()
 	cleanup()
