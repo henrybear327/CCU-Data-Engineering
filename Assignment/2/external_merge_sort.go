@@ -20,6 +20,11 @@ import (
 	"time"
 )
 
+var inputFileReadingTime time.Duration
+var bufferGrowingTime time.Duration
+var tempFileSortingTime time.Duration
+var tempFileWritingTime time.Duration
+
 type ProgramArgument struct {
 	inputFilename     *string
 	outputFilename    *string
@@ -137,34 +142,13 @@ func createResultFile() *os.File {
 	return file
 }
 
-func closeTempFile(file **os.File) {
-	stat, err := (*file).Stat()
-	if err != nil {
-		panic(err)
-	}
-
-	err = (*file).Close()
-	if err != nil {
-		panic(err)
-	}
-
-	if *config.isDebug {
-		fmt.Println("tmp file \"" + stat.Name() + "\" is closed successfully\n")
-	}
-	*file = nil
-}
-
-var tempFileSortingTime time.Duration
-var writeTempFileTime time.Duration
-
 func writeTempFile(buffer []string, chunkIndex int) {
 	// sort
 	start := time.Now()
 
 	sort.Strings(buffer)
 
-	end := time.Now()
-	elapsed := end.Sub(start)
+	elapsed := time.Since(start)
 	tempFileSortingTime += elapsed
 
 	// write
@@ -176,16 +160,20 @@ func writeTempFile(buffer []string, chunkIndex int) {
 		fd.WriteString(buffer[i])
 	}
 	fd.Flush()
-	closeTempFile(&tmpFileFd)
+	tmpFileFd.Close()
 
-	end = time.Now()
-	elapsed = end.Sub(start)
-	writeTempFileTime += elapsed
+	elapsed = time.Since(start)
+	tempFileWritingTime += elapsed
 }
 
 func splitDataIntoChunks() {
 	fmt.Println("Split data into chunks")
-	start := time.Now()
+	inputFileReadingTime = 0
+	bufferGrowingTime = 0
+	tempFileSortingTime = 0
+	tempFileWritingTime = 0
+
+	totalStart := time.Now()
 
 	/*
 		For merge sort
@@ -208,15 +196,18 @@ func splitDataIntoChunks() {
 
 	scanner := bufio.NewScanner(inputFile)
 
-	buffer := make([]string, 0)
+	buffer := make([]string, 0, 10000000)
 	for scanner.Scan() {
+		start := time.Now()
 		str := scanner.Text()
 		str += "\n"
 		// fmt.Printf("%v", str) // Println will add back the final '\n'
+		inputFileReadingTime += time.Since(start)
 
+		start = time.Now()
 		buffer = append(buffer, str)
-
 		accumulatedSize += len(str)
+		bufferGrowingTime += time.Since(start)
 
 		if accumulatedSize >= config.chunkSize {
 			if *config.isDebug {
@@ -228,7 +219,7 @@ func splitDataIntoChunks() {
 			writeTempFile(buffer, chunkIndex)
 
 			chunkIndex++
-			buffer = make([]string, 0)
+			buffer = make([]string, 0, 10000000)
 		}
 	}
 	if err := scanner.Err(); err != nil {
@@ -246,11 +237,15 @@ func splitDataIntoChunks() {
 
 	*config.totalChunks = chunkIndex
 
-	end := time.Now()
-	elapsed := end.Sub(start)
-	fmt.Printf("Time elapsed %v\n", elapsed)
+	inputFile.Close()
+
+	fmt.Printf("Time elapsed for reading input %v\n", inputFileReadingTime)
+	fmt.Printf("Time elapsed for growing buffer %v\n", bufferGrowingTime)
 	fmt.Printf("Time elapsed for sorting tmp %v\n", tempFileSortingTime)
-	fmt.Printf("Time elapsed for writing tmp %v\n\n", writeTempFileTime)
+	fmt.Printf("Time elapsed for writing tmp %v\n", tempFileWritingTime)
+
+	elapsed := time.Since(totalStart)
+	fmt.Printf("Time elapsed %v (%v)\n\n", elapsed, tempFileSortingTime+tempFileWritingTime+inputFileReadingTime+bufferGrowingTime)
 }
 
 func mergeChunks() {
@@ -281,8 +276,7 @@ func mergeChunks() {
 	fd.Flush()
 	resultFd.Close()
 
-	end := time.Now()
-	elapsed := end.Sub(start)
+	elapsed := time.Since(start)
 	fmt.Printf("Time elapsed %v\n\n", elapsed)
 }
 
@@ -315,8 +309,7 @@ func cleanup() {
 		fmt.Println("Done")
 	}
 
-	end := time.Now()
-	elapsed := end.Sub(start)
+	elapsed := time.Since(start)
 	fmt.Printf("Time elapsed %v\n\n", elapsed)
 }
 
@@ -351,8 +344,7 @@ func main() {
 	mergeChunks()
 	cleanup()
 
-	end := time.Now()
-	elapsed := end.Sub(start)
+	elapsed := time.Since(start)
 	fmt.Printf("Total runtime %v\n\n", elapsed)
 
 	// readTest()
