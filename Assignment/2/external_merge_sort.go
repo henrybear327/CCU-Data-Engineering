@@ -20,11 +20,6 @@ import (
 	"time"
 )
 
-var inputFileReadingTime time.Duration
-var bufferGrowingTime time.Duration
-var tempFileSortingTime time.Duration
-var tempFileWritingTime time.Duration
-
 type ProgramArgument struct {
 	inputFilename     *string
 	outputFilename    *string
@@ -144,16 +139,9 @@ func createResultFile() *os.File {
 
 func writeTempFile(buffer []string, chunkIndex int) {
 	// sort
-	start := time.Now()
-
 	sort.Strings(buffer)
 
-	elapsed := time.Since(start)
-	tempFileSortingTime += elapsed
-
 	// write
-	start = time.Now()
-
 	tmpFileFd := createTempFile(chunkIndex)
 	fd := bufio.NewWriter(tmpFileFd)
 	for i := 0; i < len(buffer); i++ {
@@ -161,19 +149,11 @@ func writeTempFile(buffer []string, chunkIndex int) {
 	}
 	fd.Flush()
 	tmpFileFd.Close()
-
-	elapsed = time.Since(start)
-	tempFileWritingTime += elapsed
 }
 
 func splitDataIntoChunks() {
 	fmt.Println("Split data into chunks")
-	inputFileReadingTime = 0
-	bufferGrowingTime = 0
-	tempFileSortingTime = 0
-	tempFileWritingTime = 0
-
-	totalStart := time.Now()
+	start := time.Now()
 
 	/*
 		For merge sort
@@ -198,16 +178,12 @@ func splitDataIntoChunks() {
 
 	buffer := make([]string, 0)
 	for scanner.Scan() {
-		start := time.Now()
 		str := scanner.Text()
 		str += "\n"
 		// fmt.Printf("%v", str) // Println will add back the final '\n'
-		inputFileReadingTime += time.Since(start)
 
-		start = time.Now()
 		buffer = append(buffer, str)
 		accumulatedSize += len(str)
-		bufferGrowingTime += time.Since(start)
 
 		if accumulatedSize >= config.chunkSize {
 			if *config.isDebug {
@@ -239,13 +215,7 @@ func splitDataIntoChunks() {
 
 	inputFile.Close()
 
-	fmt.Printf("Time elapsed for reading input %v\n", inputFileReadingTime)
-	fmt.Printf("Time elapsed for growing buffer %v\n", bufferGrowingTime)
-	fmt.Printf("Time elapsed for sorting tmp %v\n", tempFileSortingTime)
-	fmt.Printf("Time elapsed for writing tmp %v\n", tempFileWritingTime)
-
-	elapsed := time.Since(totalStart)
-	fmt.Printf("Time elapsed %v (%v)\n\n", elapsed, tempFileSortingTime+tempFileWritingTime+inputFileReadingTime+bufferGrowingTime)
+	fmt.Printf("Time elapsed %v\n", time.Since(start))
 }
 
 func mergeChunks() {
