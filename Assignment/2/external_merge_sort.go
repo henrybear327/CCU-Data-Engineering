@@ -198,6 +198,7 @@ func splitDataIntoChunks() {
 			if *config.isDebug {
 				fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 			}
+			fmt.Printf("Finishing slice %v\n", chunkIndex)
 
 			accumulatedSize = 0
 
@@ -214,6 +215,7 @@ func splitDataIntoChunks() {
 		if *config.isDebug {
 			fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 		}
+		fmt.Printf("Finishing slice %v\n", chunkIndex)
 
 		writeTempFile(buffer, chunkIndex)
 
