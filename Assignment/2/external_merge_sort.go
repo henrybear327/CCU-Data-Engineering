@@ -62,7 +62,7 @@ func parseCommandLineArgument() {
 	config.isDebug = flag.Bool("d", false, "Set true for debug mode")
 
 	config.useParallel = flag.Bool("p", true, "Default to parallel mode")
-	config.depth = flag.Int("d", 4, "Depth")
+	config.depth = flag.Int("depth", 4, "Depth")
 
 	config.cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	config.memprofile = flag.String("memprofile", "", "write memory profile to `file`")
