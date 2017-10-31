@@ -38,6 +38,7 @@ type ProgramArgument struct {
 	isDebug *bool
 
 	useParallel *bool
+	threshold   *int
 
 	cpuprofile *string
 	memprofile *string
@@ -61,6 +62,7 @@ func parseCommandLineArgument() {
 	config.isDebug = flag.Bool("d", false, "Set true for debug mode")
 
 	config.useParallel = flag.Bool("p", true, "Default to parallel mode")
+	config.threshold = flag.Int("t", 100000, "Threshold")
 
 	config.cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	config.memprofile = flag.String("memprofile", "", "write memory profile to `file`")
@@ -153,7 +155,7 @@ func createResultFile() *os.File {
 func writeTempFile(buffer []string, chunkIndex int) {
 	// sort
 	if *config.useParallel {
-		buffer = MergeSort(buffer, 10000000)
+		buffer = MergeSort(buffer, *config.threshold)
 	} else {
 		sort.Strings(buffer)
 	}
