@@ -31,6 +31,8 @@ type ProgramArgument struct {
 	chunkSize   int
 	totalChunks *int
 
+	frequency *int
+
 	useChunkSize          *bool
 	preserveInputFile     *bool
 	preserveTemporaryFile *bool
@@ -55,6 +57,8 @@ func parseCommandLineArgument() {
 	config.temporaryFilePath = flag.String("tmp", "/tmp", "The path for generated temporary files to be stored")
 
 	config.totalChunks = flag.Int("chunks", 1024, "Minimal chunks to be created")
+
+	config.frequency = flag.Int("freq", 100, "frequence for printing debug message")
 
 	config.preserveInputFile = flag.Bool("pi", true, "Set to true to preserve the input file")
 	config.preserveTemporaryFile = flag.Bool("pt", false, "Set to true to preserve the temporary file")
@@ -209,7 +213,7 @@ func splitDataIntoChunks() {
 				fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 			}
 
-			if chunkIndex%100 == 0 {
+			if chunkIndex%(*config.frequency) == 0 {
 				fmt.Printf("Finishing slice %v\n", chunkIndex)
 			}
 
@@ -228,7 +232,7 @@ func splitDataIntoChunks() {
 		if *config.isDebug {
 			fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 		}
-		if chunkIndex%100 == 0 {
+		if chunkIndex%(*config.frequency) == 0 {
 			fmt.Printf("Finishing slice %v\n", chunkIndex)
 		}
 
