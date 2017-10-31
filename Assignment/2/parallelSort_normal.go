@@ -5,15 +5,6 @@ import (
 	"sync"
 )
 
-func sortItNormal(data []string, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	// defer runtime.UnlockOSThread()
-	// runtime.LockOSThread()
-
-	sort.Strings(data)
-}
-
 func parallelSortNormal(data []string) {
 	var newWG sync.WaitGroup
 	newWG.Add(1)
@@ -22,19 +13,20 @@ func parallelSortNormal(data []string) {
 }
 
 func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	// fmt.Printf("Entering Node %v: %v %v\n", node, left, right)
 	if depth == *config.depth {
-		go sortItNormal(data[left:right], wg)
+		sort.Strings(data[left:right])
 		return
 	}
 	var newWG sync.WaitGroup
 
 	mid := left + (right-left)/2
 	newWG.Add(1)
-	mergeSortNormal(depth+1, left, mid, data, &newWG)
+	go mergeSortNormal(depth+1, left, mid, data, &newWG)
 
 	newWG.Add(1)
-	mergeSortNormal(depth+1, mid, right, data, &newWG)
+	go mergeSortNormal(depth+1, mid, right, data, &newWG)
 
 	newWG.Wait()
 
@@ -74,6 +66,4 @@ func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) 
 		data[left+i] = tmp[i]
 		// fmt.Printf("check %v: %v\n", nodeData[node*2].leftBound+i, data[nodeData[node*2].leftBound+i])
 	}
-
-	wg.Done()
 }
