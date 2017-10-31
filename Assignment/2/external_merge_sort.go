@@ -159,7 +159,7 @@ func parallelSort(data []string) {
 }
 
 func mergesort(data []string, out chan []string, dep int) {
-	if *config.depth >= 4 {
+	if dep >= *config.depth {
 		sort.Slice(data, func(i, j int) bool {
 			return data[i] > data[j]
 		})
