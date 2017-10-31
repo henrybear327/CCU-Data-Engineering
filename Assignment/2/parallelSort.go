@@ -35,7 +35,7 @@ func parallelSort(data []string) {
 		}
 
 		newArray[i] = make([]string, len(data[leftPoint[i]:rightPoint[i]]))
-		copy(newArray[i], data)
+		copy(newArray[i], data[leftPoint[i]:rightPoint[i]])
 		wg.Add(1)
 		go mySort(newArray[i], &wg)
 	}
@@ -52,10 +52,10 @@ func parallelSort(data []string) {
 	}
 
 	wg.Add(1)
-	mergesort(0, 0, len(data), &wg)
+	mergesort(0, 1, &wg)
 }
 
-func mergesort(dep int, left int, right int, wg *sync.WaitGroup) {
+func mergesort(dep int, node int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	defer runtime.UnlockOSThread()
 
@@ -73,17 +73,19 @@ func mergesort(dep int, left int, right int, wg *sync.WaitGroup) {
 		return
 	}
 
-	mid := left + (right-left)/2
 	localWG.Add(1)
-	go mergesort(dep+1, left, mid, &localWG)
+	go mergesort(dep+1, node*2, &localWG)
 	localWG.Add(1)
-	go mergesort(dep+1, mid, right, &localWG)
+	go mergesort(dep+1, node*2+1, &localWG)
 	localWG.Wait()
 
-	i := left
-	j := mid
+	// fmt.Printf("%v %v %v\n", node, dep, node*2-(1<<uint(dep+1)))
+	i := leftPoint[node*2-(1<<uint(dep+1))]
+	mid := rightPoint[node*2-(1<<uint(dep+1))]
+	j := leftPoint[node*2+1-(1<<uint(dep+1))]
+	right := rightPoint[node*2+1-(1<<uint(dep+1))]
 	idx := 0
-	tmp := make([]string, right-left)
+	tmp := make([]string, right-i)
 	for i < mid && j < right {
 		if sortedResult[i] < sortedResult[j] {
 			tmp[idx] = sortedResult[i]
@@ -109,6 +111,6 @@ func mergesort(dep int, left int, right int, wg *sync.WaitGroup) {
 	}
 
 	for i := 0; i < idx; i++ {
-		sortedResult[left+i] = tmp[i]
+		sortedResult[leftPoint[node*2-(1<<uint(dep+1))]+i] = tmp[i]
 	}
 }
