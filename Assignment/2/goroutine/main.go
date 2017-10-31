@@ -10,7 +10,9 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -18,7 +20,7 @@ func f(left, right chan int) {
 	left <- <-right
 }
 
-func main() {
+func solve() {
 	var n = 10000
 	if len(os.Args) > 1 {
 		var err error
@@ -39,4 +41,41 @@ func main() {
 	}
 	go func(c chan int) { c <- 1 }(right)
 	<-leftmost
+}
+
+func mySort(in chan []int, out chan []int) {
+	data := <-in
+	sort.Ints(data)
+	out <- data
+}
+
+func mySort2(in []int) []int {
+	sort.Ints(in)
+	return in
+}
+
+func main() {
+	// solve()
+
+	data := make([]int, 0)
+	n := 600000000
+	for i := 0; i < n; i++ {
+		data = append(data, i)
+	}
+
+	for i := 0; i < 10; i++ {
+		// ch := make(chan []int, 0)
+		// out := make(chan []int, 0)
+		// go mySort(ch, out)
+		// ch <- data[n/10*i : n/10*(i+1)]
+
+		var newData []int
+		newData = make([]int, len(data[n/10*i:n/10*(i+1)]))
+		copy(newData, data[n/10*i:n/10*(i+1)])
+
+		out := mySort2(newData)
+		if len(out) > 0 {
+			fmt.Println("Yes")
+		}
+	}
 }
