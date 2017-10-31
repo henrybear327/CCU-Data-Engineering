@@ -1,7 +1,6 @@
 package main
 
 import (
-	"runtime"
 	"sort"
 	"sync"
 )
@@ -16,9 +15,9 @@ var sortedData [][]string
 
 func sortIt(idx int, wg *sync.WaitGroup) {
 	defer wg.Done()
-	defer runtime.UnlockOSThread()
+	// defer runtime.UnlockOSThread()
 
-	runtime.LockOSThread()
+	// runtime.LockOSThread()
 
 	// fmt.Printf("Started node %v sorting\n", idx)
 	sort.Strings(sortedData[idx])
