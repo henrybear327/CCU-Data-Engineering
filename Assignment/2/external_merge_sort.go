@@ -38,7 +38,7 @@ type ProgramArgument struct {
 	isDebug *bool
 
 	useParallel *bool
-	threshold   *int
+	depth       *int
 
 	cpuprofile *string
 	memprofile *string
@@ -62,7 +62,7 @@ func parseCommandLineArgument() {
 	config.isDebug = flag.Bool("d", false, "Set true for debug mode")
 
 	config.useParallel = flag.Bool("p", true, "Default to parallel mode")
-	config.threshold = flag.Int("t", 100000, "Threshold")
+	config.depth = flag.Int("d", 4, "Depth")
 
 	config.cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	config.memprofile = flag.String("memprofile", "", "write memory profile to `file`")
@@ -159,7 +159,7 @@ func parallelSort(data []string) {
 }
 
 func mergesort(data []string, out chan []string, dep int) {
-	if dep >= 4 {
+	if *config.depth >= 4 {
 		sort.Slice(data, func(i, j int) bool {
 			return data[i] > data[j]
 		})
@@ -251,7 +251,10 @@ func splitDataIntoChunks() {
 			if *config.isDebug {
 				fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 			}
-			fmt.Printf("Finishing slice %v\n", chunkIndex)
+
+			if chunkIndex%100 == 0 {
+				fmt.Printf("Finishing slice %v\n", chunkIndex)
+			}
 
 			accumulatedSize = 0
 
@@ -268,7 +271,9 @@ func splitDataIntoChunks() {
 		if *config.isDebug {
 			fmt.Printf("Accumulated bytes is %v\n", accumulatedSize)
 		}
-		fmt.Printf("Finishing slice %v\n", chunkIndex)
+		if chunkIndex%100 == 0 {
+			fmt.Printf("Finishing slice %v\n", chunkIndex)
+		}
 
 		writeTempFile(buffer, chunkIndex)
 
