@@ -1,116 +1,131 @@
 package main
 
 import (
-	"runtime"
 	"sort"
 	"sync"
 )
 
-func mySort(in []string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	sort.Strings(in)
+type Node struct {
+	leftBound, rightBound int
+	needSorting           bool
 }
 
-var sortedResult []string
-var leftPoint []int
-var rightPoint []int
+var nodeData []Node
+var sortedData [][]string
+
+func sortIt(idx int, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	// fmt.Printf("Started node %v sorting\n", idx)
+	sort.Strings(sortedData[idx])
+	// fmt.Printf("Ended node %v sorting\n", idx)
+}
 
 func parallelSort(data []string) {
-	var wg sync.WaitGroup
+	// fmt.Printf("Parallel on %v\n", len(data))
+
+	totalNodes := *config.depth * 4
+	nodeData = make([]Node, totalNodes)
+	// fmt.Printf("Total %v\n", totalNodes)
+
+	// first pass, get [l, r)
+	mergeSort(0, 1, 0, 0, len(data), data)
+	// for i := 1; i < totalNodes; i++ {
+	// 	fmt.Printf("Node %v: %v %v\n", i, nodeData[i].leftBound, nodeData[i].rightBound)
+	// }
 
 	// sort
-
-	// TODO: depth check
-	runs := (1 << uint(*config.depth))
-	sz := len(data) / runs
-	leftPoint = make([]int, runs)
-	rightPoint = make([]int, runs)
-
-	newArray := make([][]string, runs)
-	for i := 0; i < runs; i++ {
-		leftPoint[i] = sz * i
-		rightPoint[i] = sz * (i + 1)
-		if i == runs-1 {
-			rightPoint[i] = len(data)
+	var wg sync.WaitGroup
+	sortedData = make([][]string, totalNodes)
+	for i := 1; i < totalNodes; i++ {
+		if nodeData[i].needSorting == false {
+			continue
 		}
 
-		newArray[i] = make([]string, len(data[leftPoint[i]:rightPoint[i]]))
-		copy(newArray[i], data[leftPoint[i]:rightPoint[i]])
+		sortedData[i] = make([]string, nodeData[i].rightBound-nodeData[i].leftBound)
+		copy(sortedData[i], data[nodeData[i].leftBound:nodeData[i].rightBound])
 		wg.Add(1)
-		go mySort(newArray[i], &wg)
+		go sortIt(i, &wg)
 	}
 	wg.Wait()
 
-	// merge
-	sortedResult = make([]string, len(data))
-	idx := int64(0)
-	for i := 0; i < runs; i++ {
-		for j := 0; j < len(newArray[i]); j++ {
-			sortedResult[idx] = newArray[i][j]
-			idx++
-		}
-	}
+	// for i := 1; i < totalNodes; i++ {
+	// 	if nodeData[i].needSorting == true {
+	// 		for j := 0; j < len(sortedData[i]); j++ {
+	// 			fmt.Printf("%v, %v: %v\n", i, j, sortedData[i][j])
+	// 		}
+	// 	}
+	// }
 
-	wg.Add(1)
-	mergesort(0, 1, &wg)
+	// merge
+	mergeSort(1, 1, 0, 0, len(data), data)
+
+	// for i := 0; i < len(data); i++ {
+	// 	fmt.Printf("%v: %v\n", i, data[i])
+	// }
 }
 
-func mergesort(dep int, node int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	defer runtime.UnlockOSThread()
-
-	runtime.LockOSThread()
-
-	var localWG sync.WaitGroup
-
-	if dep >= *config.depth {
-		// when threshold is met
-		// call system sort
-
-		// sort.Slice(data, func(i, j int) bool {
-		// 	return data[i] > data[j]
-		// })
+func mergeSort(passNumber, node, depth, left, right int, data []string) {
+	// fmt.Printf("Entering Node %v: %v %v\n", node, left, right)
+	nodeData[node].leftBound = left
+	nodeData[node].rightBound = right
+	if depth == *config.depth {
+		if passNumber == 0 {
+			nodeData[node].needSorting = true
+		} else if passNumber == 1 {
+			for i := nodeData[node].leftBound; i < nodeData[node].rightBound; i++ {
+				data[i] = sortedData[node][i-nodeData[node].leftBound]
+			}
+		}
 		return
 	}
 
-	localWG.Add(1)
-	go mergesort(dep+1, node*2, &localWG)
-	localWG.Add(1)
-	go mergesort(dep+1, node*2+1, &localWG)
-	localWG.Wait()
+	mid := left + (right-left)/2
+	mergeSort(passNumber, node*2, depth+1, left, mid, data)
+	mergeSort(passNumber, node*2+1, depth+1, mid, right, data)
 
-	// fmt.Printf("%v %v %v\n", node, dep, node*2-(1<<uint(dep+1)))
-	i := leftPoint[node*2-(1<<uint(dep+1))]
-	mid := rightPoint[node*2-(1<<uint(dep+1))]
-	j := leftPoint[node*2+1-(1<<uint(dep+1))]
-	right := rightPoint[node*2+1-(1<<uint(dep+1))]
-	idx := 0
-	tmp := make([]string, right-i)
-	for i < mid && j < right {
-		if sortedResult[i] < sortedResult[j] {
-			tmp[idx] = sortedResult[i]
+	// fmt.Printf("left %v mid %v right %v\n", left, mid, right)
+
+	if passNumber == 1 {
+		// fmt.Println("passNumber is 1")
+		i := nodeData[node*2].leftBound
+		j := nodeData[node*2+1].leftBound
+		// fmt.Printf("Bound %v %v, %v %v\n", nodeData[node*2].leftBound, nodeData[node*2].rightBound,
+		// 	nodeData[node*2+1].leftBound, nodeData[node*2+1].rightBound)
+
+		tmp := make([]string, nodeData[node*2+1].rightBound-nodeData[node*2].leftBound)
+
+		idx := 0
+		for i < nodeData[node*2].rightBound && j < nodeData[node*2+1].rightBound {
+			// fmt.Printf("Before %v %v %v\n", i, j, idx)
+			if data[i] < data[j] {
+				tmp[idx] = data[i]
+				i++
+			} else {
+				tmp[idx] = data[j]
+				j++
+			}
+			idx++
+			// fmt.Printf("After %v %v %v\n", i, j, idx)
+		}
+
+		for i < nodeData[node*2].rightBound {
+			tmp[idx] = data[i]
 			i++
 			idx++
-		} else {
-			tmp[idx] = sortedResult[j]
+		}
+
+		for j < nodeData[node*2+1].rightBound {
+			tmp[idx] = data[j]
 			j++
 			idx++
 		}
-	}
 
-	for i < mid {
-		tmp[idx] = sortedResult[i]
-		i++
-		idx++
-	}
-
-	for j < right {
-		tmp[idx] = sortedResult[j]
-		j++
-		idx++
-	}
-
-	for i := 0; i < idx; i++ {
-		sortedResult[leftPoint[node*2-(1<<uint(dep+1))]+i] = tmp[i]
+		for i := 0; i < idx; i++ {
+			data[nodeData[node*2].leftBound+i] = tmp[i]
+			// fmt.Printf("check %v: %v\n", nodeData[node*2].leftBound+i, data[nodeData[node*2].leftBound+i])
+		}
+	} else {
+		// fmt.Println("passNumber is 0")
 	}
 }
