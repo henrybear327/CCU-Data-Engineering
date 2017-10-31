@@ -1,7 +1,7 @@
 /*
-1. flag the generator
+1. Winner tree node, string 能不帶就不帶
 2. Tree node, compare function
-3. Line 66?
+3. tree size calculation
 */
 
 package main
