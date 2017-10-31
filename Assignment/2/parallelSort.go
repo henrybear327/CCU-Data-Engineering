@@ -1,83 +1,65 @@
 package main
 
 import (
-	"sync"
+	"runtime"
+	"sort"
 )
 
-func MergeSort(list []string, threshold int) []string {
+func parallelSort(data []string) {
+	ch := make(chan []string)
 
-	useThreshold := !(threshold < 0)
+	in := make(chan []string)
+	go mergesort(in, ch, 0)
+	in <- data
 
-	size := len(list)
-	middle := size / 2
-
-	if size <= 1 {
-		return list
-	}
-
-	var left, right []string
-
-	sortInNewRoutine := size > threshold && useThreshold
-
-	if !sortInNewRoutine {
-		left = MergeSort(list[:middle], threshold)
-		right = MergeSort(list[middle:], threshold)
-	} else {
-		var wg sync.WaitGroup
-		wg.Add(2)
-
-		go func() {
-			defer func() { wg.Done() }()
-			left = MergeSort(list[:middle], threshold)
-
-		}()
-
-		go func() {
-			defer func() { wg.Done() }()
-			right = MergeSort(list[middle:], threshold)
-		}()
-
-		wg.Wait()
-	}
-
-	return merge(left, right)
-
+	data = <-ch
 }
 
-func merge(leftList, rightList []string) []string {
+func mergesort(in chan []string, out chan []string, dep int) {
+	data := <-in
+	if dep >= *config.depth {
+		// when threshold is met
+		// call system sort
+		sort.Slice(data, func(i, j int) bool {
+			return data[i] > data[j]
+		})
+		out <- data
+		return
+	}
 
-	size := len(leftList) + len(rightList)
+	runtime.LockOSThread()
+
+	N := len(data)
+	res1 := make(chan []string, 1)
+	res2 := make(chan []string, 1)
+
+	split1 := make(chan []string)
+	split2 := make(chan []string)
+	go mergesort(split1, res1, dep+1)
+	go mergesort(split2, res2, dep+1)
+	split1 <- data[:N/2]
+	split2 <- data[N/2:]
+
+	l, r := <-res1, <-res2
 	i, j := 0, 0
-	slice := make([]string, size)
-
-	for k := 0; k < size; k++ {
-		if i > len(leftList)-1 && j <= len(rightList)-1 {
-			slice[k] = rightList[j]
+	for ix := range data {
+		switch {
+		case i == len(l):
+			data[ix] = r[j]
 			j++
-		} else if j > len(rightList)-1 && i <= len(leftList)-1 {
-			slice[k] = leftList[i]
+		case j == len(r):
+			data[ix] = l[i]
 			i++
-		} else if leftList[i] < rightList[j] {
-			slice[k] = leftList[i]
+		case l[i] > r[j]:
+			data[ix] = l[i]
 			i++
-		} else {
-			slice[k] = rightList[j]
+		default:
+			data[ix] = r[j]
 			j++
 		}
 	}
-	return slice
+
+	out <- data
+
+	runtime.UnlockOSThread()
 }
-
-// func main() {
-// 	log.Print("This is a parallel mergesort written in go")
-// 	log.Print("Run the included test to get see some statistics")
-
-// 	numberOfItems := 50000000
-// 	threshold := 10000
-
-// 	items := rand.Perm(numberOfItems)
-
-// 	start := time.Now()
-// 	MergeSort(items, threshold)
-// 	log.Printf("Took %s to sort %d items (with threshold %d).", time.Since(start), numberOfItems, threshold)
-// }

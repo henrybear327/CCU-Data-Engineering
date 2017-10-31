@@ -152,53 +152,6 @@ func createResultFile() *os.File {
 	return file
 }
 
-func parallelSort(data []string) {
-	ch := make(chan []string, 1)
-	mergesort(data, ch, 0)
-	data = <-ch
-}
-
-func mergesort(data []string, out chan []string, dep int) {
-	if dep >= *config.depth {
-		sort.Slice(data, func(i, j int) bool {
-			return data[i] > data[j]
-		})
-		out <- data
-		return
-	}
-
-	runtime.LockOSThread()
-
-	N := len(data)
-	res1 := make(chan []string, 1)
-	res2 := make(chan []string, 1)
-	go mergesort(data[:N/2], res1, dep+1)
-	go mergesort(data[N/2:], res2, dep+1)
-
-	l, r := <-res1, <-res2
-	i, j := 0, 0
-	for ix := range data {
-		switch {
-		case i == len(l):
-			data[ix] = r[j]
-			j++
-		case j == len(r):
-			data[ix] = l[i]
-			i++
-		case l[i] > r[j]:
-			data[ix] = l[i]
-			i++
-		default:
-			data[ix] = r[j]
-			j++
-		}
-	}
-
-	out <- data
-
-	runtime.UnlockOSThread()
-}
-
 func writeTempFile(buffer []string, chunkIndex int) {
 	// sort
 	if *config.useParallel {
