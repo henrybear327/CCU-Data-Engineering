@@ -6,13 +6,15 @@ import (
 )
 
 func parallelSort(data []string) {
-	ch := make(chan []string)
+	out := make(chan []string)
 
 	in := make(chan []string)
-	go mergesort(in, ch, 0)
-	in <- data
+	newCopy := make([]string, len(data))
+	copy(newCopy, data)
+	go mergesort(in, out, 0)
+	in <- newCopy
 
-	data = <-ch
+	data = <-out
 }
 
 func mergesort(in chan []string, out chan []string, dep int) {
@@ -30,15 +32,20 @@ func mergesort(in chan []string, out chan []string, dep int) {
 	runtime.LockOSThread()
 
 	N := len(data)
+
 	res1 := make(chan []string, 1)
 	res2 := make(chan []string, 1)
 
 	split1 := make(chan []string)
 	split2 := make(chan []string)
+	split1Data := make([]string, len(data[:N/2]))
+	split2Data := make([]string, len(data[N/2:]))
+	copy(split1Data, data[:N/2])
+	copy(split2Data, data[N/2:])
 	go mergesort(split1, res1, dep+1)
 	go mergesort(split2, res2, dep+1)
-	split1 <- data[:N/2]
-	split2 <- data[N/2:]
+	split1 <- split1Data
+	split2 <- split2Data
 
 	l, r := <-res1, <-res2
 	i, j := 0, 0
