@@ -30,7 +30,7 @@ func parallelSort(data []string) {
 	for i := 0; i < runs; i++ {
 		leftPoint[i] = sz * i
 		rightPoint[i] = sz * (i + 1)
-		if rightPoint[i] > len(data) {
+		if i == runs-1 {
 			rightPoint[i] = len(data)
 		}
 
