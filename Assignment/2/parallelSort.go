@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sort"
 	"sync"
 )
@@ -67,7 +66,7 @@ func parallelSort(data []string) {
 }
 
 func mergeSort(passNumber, node, depth, left, right int, data []string) {
-	fmt.Printf("Entering Node %v: %v %v\n", node, left, right)
+	// fmt.Printf("Entering Node %v: %v %v\n", node, left, right)
 	nodeData[node].leftBound = left
 	nodeData[node].rightBound = right
 	if depth == *config.depth {
