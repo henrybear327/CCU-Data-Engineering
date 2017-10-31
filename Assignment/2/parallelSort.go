@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 )
@@ -24,7 +25,7 @@ func sortIt(idx int, wg *sync.WaitGroup) {
 func parallelSort(data []string) {
 	// fmt.Printf("Parallel on %v\n", len(data))
 
-	totalNodes := *config.depth * 4
+	totalNodes := (1 << uint(*config.depth+1))
 	nodeData = make([]Node, totalNodes)
 	// fmt.Printf("Total %v\n", totalNodes)
 
@@ -66,7 +67,7 @@ func parallelSort(data []string) {
 }
 
 func mergeSort(passNumber, node, depth, left, right int, data []string) {
-	// fmt.Printf("Entering Node %v: %v %v\n", node, left, right)
+	fmt.Printf("Entering Node %v: %v %v\n", node, left, right)
 	nodeData[node].leftBound = left
 	nodeData[node].rightBound = right
 	if depth == *config.depth {
