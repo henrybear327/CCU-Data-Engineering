@@ -58,7 +58,7 @@ func main() {
 	// solve()
 
 	data := make([]int, 0)
-	n := 600000000
+	n := 10000000
 	for i := 0; i < n; i++ {
 		data = append(data, i)
 	}
