@@ -167,6 +167,8 @@ func mergesort(data []string, out chan []string, dep int) {
 		return
 	}
 
+	runtime.LockOSThread()
+
 	N := len(data)
 	res1 := make(chan []string, 1)
 	res2 := make(chan []string, 1)
@@ -193,6 +195,8 @@ func mergesort(data []string, out chan []string, dep int) {
 	}
 
 	out <- data
+
+	runtime.UnlockOSThread()
 }
 
 func writeTempFile(buffer []string, chunkIndex int) {
