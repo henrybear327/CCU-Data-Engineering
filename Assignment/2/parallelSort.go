@@ -12,6 +12,8 @@ func mySort(in []string, wg *sync.WaitGroup) {
 }
 
 var sortedResult []string
+var leftPoint []int
+var rightPoint []int
 
 func parallelSort(data []string) {
 	var wg sync.WaitGroup
@@ -21,10 +23,18 @@ func parallelSort(data []string) {
 	// TODO: depth check
 	runs := (1 << uint(*config.depth))
 	sz := len(data) / runs
+	leftPoint = make([]int, runs)
+	rightPoint = make([]int, runs)
 
 	newArray := make([][]string, runs)
 	for i := 0; i < runs; i++ {
-		newArray[i] = make([]string, len(data[sz*i:sz*(i+1)]))
+		leftPoint[i] = sz * i
+		rightPoint[i] = sz * (i + 1)
+		if rightPoint[i] > len(data) {
+			rightPoint[i] = len(data)
+		}
+
+		newArray[i] = make([]string, len(data[leftPoint[i]:rightPoint[i]]))
 		copy(newArray[i], data)
 		wg.Add(1)
 		go mySort(newArray[i], &wg)
