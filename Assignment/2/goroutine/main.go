@@ -11,10 +11,14 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"sort"
 	"strconv"
+	"sync"
 )
+
+var wg sync.WaitGroup
 
 func f(left, right chan int) {
 	left <- <-right
@@ -43,39 +47,53 @@ func solve() {
 	<-leftmost
 }
 
-func mySort(in chan []int, out chan []int) {
+func mySort(in chan []int) {
 	data := <-in
 	sort.Ints(data)
-	out <- data
 }
 
-func mySort2(in []int) []int {
+func mySort2(in []int) {
+	defer wg.Done()
 	sort.Ints(in)
-	return in
+}
+
+func myTest() {
+	defer wg.Done()
+
+	rand.Seed(42)
+	res := int64(0)
+	for i := int64(0); i < 10000000000; i++ {
+		res += i
+	}
+	fmt.Println(res)
 }
 
 func main() {
 	// solve()
 
 	data := make([]int, 0)
-	n := 10000000
+	n := 100000000
+	p := 10
 	for i := 0; i < n; i++ {
 		data = append(data, i)
 	}
 
-	for i := 0; i < 10; i++ {
-		// ch := make(chan []int, 0)
-		// out := make(chan []int, 0)
-		// go mySort(ch, out)
-		// ch <- data[n/10*i : n/10*(i+1)]
-
+	wg.Add(p)
+	for i := 0; i < p; i++ {
+		var ch chan []int
 		var newData []int
-		newData = make([]int, len(data[n/10*i:n/10*(i+1)]))
-		copy(newData, data[n/10*i:n/10*(i+1)])
+		newData = make([]int, len(data[n/p*i:n/p*(i+1)]))
+		copy(newData, data[n/p*i:n/p*(i+1)])
+		go mySort(ch)
+		ch <- newData
 
-		out := mySort2(newData)
-		if len(out) > 0 {
-			fmt.Println("Yes")
-		}
+		// var newData []int
+		// newData = make([]int, len(data[n/p*i:n/p*(i+1)]))
+		// copy(newData, data[n/p*i:n/p*(i+1)])
+		// go mySort2(newData)
+
+		// go myTest()
 	}
+
+	wg.Wait()
 }
