@@ -101,7 +101,7 @@ func mergeSortNormal(depth, left, right int, data []string, done chan bool) {
 	// }
 	// fmt.Println("====")
 
-	idx := 0
+	idx := left
 	i := left
 	j := mid
 	for i < mid && j < right {
@@ -129,8 +129,8 @@ func mergeSortNormal(depth, left, right int, data []string, done chan bool) {
 		idx++
 	}
 
-	for i := 0; i < idx; i++ {
-		data[left+i] = tmpDataForMerge[i]
+	for i := left; i < right; i++ {
+		data[i] = tmpDataForMerge[i]
 		// fmt.Printf("check %v: %v\n", nodeData[node*2].leftBound+i, data[nodeData[node*2].leftBound+i])
 	}
 	// fmt.Println("==== after ====")
