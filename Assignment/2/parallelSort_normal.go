@@ -12,13 +12,32 @@ func parallelSortNormal(data []string) {
 	newWG.Wait()
 }
 
-func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) {
+func mySort(in chan []string, out chan []string, wg *sync.WaitGroup) {
 	defer wg.Done()
+	// start := time.Now()
+	sort.Strings(<-in)
+	// fmt.Println(time.Since(start))
+}
+
+func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) {
 	// fmt.Printf("Entering Node %v: %v %v\n", node, left, right)
 	if depth == *config.depth {
-		sort.Strings(data[left:right])
+		go func(left, right int, wg *sync.WaitGroup) {
+			var newData []string
+			newChannelIn := make(chan []string, 1)
+			newChannelOut := make(chan []string, 1)
+			newData = make([]string, len(data[left:right]))
+			copy(newData, data[left:right])
+			go mySort(newChannelIn, newChannelOut, wg)
+			newChannelIn <- newData
+			out := <-newChannelOut
+			copy(data[left:right], out)
+		}(left, right, wg)
+
 		return
 	}
+
+	defer wg.Done()
 	var newWG sync.WaitGroup
 
 	mid := left + (right-left)/2
