@@ -59,15 +59,25 @@ func main() {
 		go func(idx int) {
 			// fmt.Printf("func i = %v\n", idx)
 			// fmt.Println(n, p, len(data))
-			var newData []int
+
 			newChannelIn := make(chan []int, 1)
 			newChannelOut := make(chan []int, 1)
-			newData = make([]int, len(data[n/p*idx:n/p*(idx+1)]))
-			copy(newData, data[n/p*idx:n/p*(idx+1)])
+			// var newData []int
+			// newData = make([]int, len(data[n/p*idx:n/p*(idx+1)]))
+			// copy(newData, data[n/p*idx:n/p*(idx+1)])
 			go mySort(newChannelIn, newChannelOut)
-			newChannelIn <- newData
+			// newChannelIn <- newData
+			newChannelIn <- data[n/p*idx : n/p*(idx+1)]
 			out := <-newChannelOut
-			copy(data[n/p*idx:n/p*(idx+1)], out)
+
+			bound := n / p * (idx + 1)
+			if len(out) < bound {
+				bound = len(out)
+			}
+			for i := 0; i < bound; i++ {
+				data[n/p*idx+i] = out[i]
+			}
+			// copy(data[n/p*idx:n/p*(idx+1)], out) // wrong...
 		}(i)
 
 		// sort 2

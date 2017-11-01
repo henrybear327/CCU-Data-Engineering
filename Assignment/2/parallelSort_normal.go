@@ -5,7 +5,13 @@ import (
 	"sync"
 )
 
+var tmpDataForMerge []string
+
 func parallelSortNormal(data []string) {
+	// fmt.Printf("Data len = %v\n", len(data))
+
+	tmpDataForMerge = make([]string, len(data))
+
 	var newWG sync.WaitGroup
 	newWG.Add(1)
 	mergeSortNormal(0, 0, len(data), data, &newWG)
@@ -13,9 +19,15 @@ func parallelSortNormal(data []string) {
 }
 
 func mySort(in chan []string, out chan []string, wg *sync.WaitGroup) {
-	defer wg.Done()
 	// start := time.Now()
-	sort.Strings(<-in)
+	data := <-in
+	sort.Strings(data)
+	// for i := 0; i < len(data)-1; i++ {
+	// 	if data[i+1] < data[i] {
+	// 		panic("sorting data error in mySort")
+	// 	}
+	// }
+	out <- data
 	// fmt.Println(time.Since(start))
 }
 
@@ -23,15 +35,38 @@ func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) 
 	// fmt.Printf("Entering Node %v: %v %v\n", node, left, right)
 	if depth == *config.depth {
 		go func(left, right int, wg *sync.WaitGroup) {
-			var newData []string
+			// fmt.Printf("left %v right %v\n", left, right)
 			newChannelIn := make(chan []string, 1)
 			newChannelOut := make(chan []string, 1)
-			newData = make([]string, len(data[left:right]))
-			copy(newData, data[left:right])
+			// var newData []string
+			// newData = make([]string, len(data[left:right]))
+			// copy(newData, data[left:right])
 			go mySort(newChannelIn, newChannelOut, wg)
-			newChannelIn <- newData
+			// newChannelIn <- newData
+			newChannelIn <- data[left:right]
 			out := <-newChannelOut
-			copy(data[left:right], out)
+
+			// for i := 0; i < len(out)-1; i++ {
+			// 	if out[i+1] < out[i] {
+			// 		panic("out sorting data error in mergesort")
+			// 	}
+			// }
+
+			// if len(data[left:right]) != len(out) {
+			// 	panic("data error")
+			// }
+
+			// copy(data[left:right], out) // can't use it like this??!!
+			for i := 0; i < len(data[left:right]); i++ {
+				data[left+i] = out[i]
+			}
+
+			// fmt.Println("==== sorted ====")
+			// for i := 0; i < len(data[left:right]); i++ {
+			// 	fmt.Println(data[left+i])
+			// }
+			// fmt.Println("====")
+			defer wg.Done()
 		}(left, right, wg)
 
 		return
@@ -42,16 +77,23 @@ func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) 
 
 	mid := left + (right-left)/2
 	newWG.Add(1)
-	go mergeSortNormal(depth+1, left, mid, data, &newWG)
+	mergeSortNormal(depth+1, left, mid, data, &newWG)
 
 	newWG.Add(1)
-	go mergeSortNormal(depth+1, mid, right, data, &newWG)
+	mergeSortNormal(depth+1, mid, right, data, &newWG)
 
 	newWG.Wait()
 
 	// fmt.Printf("left %v mid %v right %v\n", left, mid, right)
 
-	tmp := make([]string, right-left)
+	// do it once
+	// tmp := make([]string, right-left)
+
+	// fmt.Printf("==== before %v %v ====\n", left, right)
+	// for i := 0; i < len(data[left:right]); i++ {
+	// 	fmt.Println(data[left+i])
+	// }
+	// fmt.Println("====")
 
 	idx := 0
 	i := left
@@ -59,10 +101,10 @@ func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) 
 	for i < mid && j < right {
 		// fmt.Printf("Before %v %v %v\n", i, j, idx)
 		if data[i] < data[j] {
-			tmp[idx] = data[i]
+			tmpDataForMerge[idx] = data[i]
 			i++
 		} else {
-			tmp[idx] = data[j]
+			tmpDataForMerge[idx] = data[j]
 			j++
 		}
 		idx++
@@ -70,19 +112,24 @@ func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) 
 	}
 
 	for i < mid {
-		tmp[idx] = data[i]
+		tmpDataForMerge[idx] = data[i]
 		i++
 		idx++
 	}
 
 	for j < right {
-		tmp[idx] = data[j]
+		tmpDataForMerge[idx] = data[j]
 		j++
 		idx++
 	}
 
 	for i := 0; i < idx; i++ {
-		data[left+i] = tmp[i]
+		data[left+i] = tmpDataForMerge[i]
 		// fmt.Printf("check %v: %v\n", nodeData[node*2].leftBound+i, data[nodeData[node*2].leftBound+i])
 	}
+	// fmt.Println("==== after ====")
+	// for i := 0; i < len(data[left:right]); i++ {
+	// 	fmt.Println(data[left+i])
+	// }
+	// fmt.Println("====")
 }

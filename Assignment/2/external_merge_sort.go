@@ -8,6 +8,8 @@ Merge sort
 Procedures:
 	1. Split data into chunks, sort before write
 	2. Winner tree
+
+	go run generator/generator.go -n 20000 -r 1000000 && go build -o my_sort *.go && time ./my_sort -i random.out -o out -chunks 2 -depth=2 -freq=100 -p=2 && time sort -d random.out -o ans && echo "\n\n" && cmp ans out
 */
 
 import (
@@ -158,12 +160,14 @@ func createResultFile() *os.File {
 
 func writeTempFile(buffer []string, chunkIndex int) {
 	// sort
-	if *config.useParallel == 1 {
-		parallelSort(buffer)
-	} else if *config.useParallel == 2 {
+	if *config.useParallel == 2 {
 		parallelSortNormal(buffer)
-	} else {
+	} else if *config.useParallel == 0 {
+		// do nothing, don't sort
+	} else if *config.useParallel == 1 {
 		sort.Strings(buffer)
+	} else {
+		panic("Invalid sorting mode")
 	}
 
 	// write
