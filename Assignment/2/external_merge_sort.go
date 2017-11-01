@@ -271,7 +271,7 @@ func mergeChunks() {
 	resultFd := createResultFile()
 	fd := bufio.NewWriter(resultFd)
 
-	winnerTreeData.winnerTreePrint()
+	// winnerTreeData.winnerTreePrint()
 	for winnerTreeData.winnerTreeIsEmpty() == false {
 		// fmt.Println("Top = " + winnerTreeData.winnerTreeTop())
 		fd.WriteString(winnerTreeData.winnerTreeTop() + "\n")

@@ -38,11 +38,13 @@ func (w *WinnerTreeData) winnerTreeInternalNodeUpdate(i int) {
 		w.data[i].origin = w.data[winnerTreeLeftChild(i)].origin
 		// w.data[i].value = w.data[winnerTreeLeftChild(i)].value
 	} else {
-		if w.data[winnerTreeLeftChild(i)].value <= w.data[winnerTreeRightChild(i)].value {
-			w.data[i].origin = w.data[winnerTreeLeftChild(i)].origin
+		leftOrigin := w.data[winnerTreeLeftChild(i)].origin
+		rightOrigin := w.data[winnerTreeRightChild(i)].origin
+		if w.data[leftOrigin+w.sz/2].value <= w.data[rightOrigin+w.sz/2].value {
+			w.data[i].origin = leftOrigin
 			// w.data[i].value = w.data[winnerTreeLeftChild(i)].value
 		} else {
-			w.data[i].origin = w.data[winnerTreeRightChild(i)].origin
+			w.data[i].origin = rightOrigin
 			// w.data[i].value = w.data[winnerTreeRightChild(i)].value
 		}
 	}
@@ -73,7 +75,13 @@ func (w *WinnerTreeData) winnerTreeInit() {
 	for i := 0; int(1<<uint(i)) <= total; i++ {
 		w.sz = int(1 << uint(i))
 	}
-	w.sz <<= 2
+
+	if w.sz == total {
+		w.sz <<= 1
+	} else {
+		w.sz <<= 2
+	}
+
 	fmt.Printf("Winner tree size %v (%v)\n", w.sz, total)
 
 	// 1-based
