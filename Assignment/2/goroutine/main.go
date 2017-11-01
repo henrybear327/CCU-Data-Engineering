@@ -10,90 +10,63 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"math/rand"
-	"os"
 	"sort"
-	"strconv"
 	"sync"
+	"time"
 )
 
 var wg sync.WaitGroup
 
-func f(left, right chan int) {
-	left <- <-right
-}
-
-func solve() {
-	var n = 10000
-	if len(os.Args) > 1 {
-		var err error
-		n, err = strconv.Atoi(os.Args[1])
-		if err != nil {
-			print("bad arg\n")
-			os.Exit(1)
-		}
-	}
-
-	leftmost := make(chan int)
-	right := leftmost
-	left := leftmost
-	for i := 0; i < n; i++ {
-		right = make(chan int)
-		go f(left, right)
-		left = right
-	}
-	go func(c chan int) { c <- 1 }(right)
-	<-leftmost
-}
+var total time.Duration
 
 func mySort(in chan []int) {
-	data := <-in
-	sort.Ints(data)
+	defer wg.Done()
+	start := time.Now()
+	sort.Ints(<-in)
+	fmt.Println(time.Since(start))
+	total += time.Since(start)
 }
 
 func mySort2(in []int) {
 	defer wg.Done()
+	start := time.Now()
 	sort.Ints(in)
-}
-
-func myTest() {
-	defer wg.Done()
-
-	rand.Seed(42)
-	res := int64(0)
-	for i := int64(0); i < 10000000000; i++ {
-		res += i
-	}
-	fmt.Println(res)
+	fmt.Println(time.Since(start))
+	total += time.Since(start)
 }
 
 func main() {
-	// solve()
-
 	data := make([]int, 0)
-	n := 100000000
-	p := 10
-	for i := 0; i < n; i++ {
+	nn := flag.Int("n", 200000000, "Data size")
+	pp := flag.Int("p", 8, "Partitions")
+	flag.Parse()
+
+	p := *pp
+	n := *nn
+	for i := n - 1; i >= 0; i-- {
 		data = append(data, i)
 	}
 
+	fmt.Printf("Partitions %v\n", p)
 	wg.Add(p)
 	for i := 0; i < p; i++ {
-		var ch chan []int
+		// sort 1
 		var newData []int
+		newChannel := make(chan []int, 1)
 		newData = make([]int, len(data[n/p*i:n/p*(i+1)]))
 		copy(newData, data[n/p*i:n/p*(i+1)])
-		go mySort(ch)
-		ch <- newData
+		go mySort(newChannel)
+		newChannel <- newData
 
+		// sort 2
 		// var newData []int
 		// newData = make([]int, len(data[n/p*i:n/p*(i+1)]))
 		// copy(newData, data[n/p*i:n/p*(i+1)])
 		// go mySort2(newData)
-
-		// go myTest()
 	}
 
 	wg.Wait()
+	fmt.Println(total)
 }
