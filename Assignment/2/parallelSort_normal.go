@@ -84,8 +84,8 @@ func mergeSortNormal(depth, left, right int, data []string, done chan bool) {
 	// newWG.Add(2)
 	doneLeft := make(chan bool, 1)
 	doneRight := make(chan bool, 1)
-	mergeSortNormal(depth+1, left, mid, data, doneLeft)
-	mergeSortNormal(depth+1, mid, right, data, doneRight)
+	go mergeSortNormal(depth+1, left, mid, data, doneLeft)
+	go mergeSortNormal(depth+1, mid, right, data, doneRight)
 	// newWG.Wait()
 	<-doneLeft
 	<-doneRight
