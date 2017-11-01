@@ -1,7 +1,5 @@
 /*
-1. Winner tree node, string 能不帶就不帶
-2. Tree node, compare function
-3. tree size calculation
+1. 1-based
 */
 
 package main
@@ -35,25 +33,33 @@ func winnerTreeRightChild(index int) int {
 func (w *WinnerTreeData) winnerTreeInternalNodeUpdate(i int) {
 	if w.data[winnerTreeLeftChild(i)].origin == -1 {
 		w.data[i].origin = w.data[winnerTreeRightChild(i)].origin
-		w.data[i].value = w.data[winnerTreeRightChild(i)].value
+		// w.data[i].value = w.data[winnerTreeRightChild(i)].value
 	} else if w.data[winnerTreeRightChild(i)].origin == -1 {
 		w.data[i].origin = w.data[winnerTreeLeftChild(i)].origin
-		w.data[i].value = w.data[winnerTreeLeftChild(i)].value
+		// w.data[i].value = w.data[winnerTreeLeftChild(i)].value
 	} else {
 		if w.data[winnerTreeLeftChild(i)].value <= w.data[winnerTreeRightChild(i)].value {
 			w.data[i].origin = w.data[winnerTreeLeftChild(i)].origin
-			w.data[i].value = w.data[winnerTreeLeftChild(i)].value
+			// w.data[i].value = w.data[winnerTreeLeftChild(i)].value
 		} else {
 			w.data[i].origin = w.data[winnerTreeRightChild(i)].origin
-			w.data[i].value = w.data[winnerTreeRightChild(i)].value
+			// w.data[i].value = w.data[winnerTreeRightChild(i)].value
 		}
 	}
 }
 
 func (w *WinnerTreeData) winnerTreePrint() {
 	fmt.Printf("\n=====================================\n")
-	for i := 0; i < w.sz; i++ {
-		fmt.Printf("%v: %v %v\n", i, w.data[i].origin, w.data[i].value)
+	for i := 1; i < w.sz; i++ {
+		if i < w.sz/2 {
+			if w.data[i].origin == -1 {
+				fmt.Printf("%v: %v\n", i, w.data[i].origin)
+			} else {
+				fmt.Printf("%v: %v %v\n", i, w.data[i].origin, w.data[w.data[i].origin+w.sz/2].value)
+			}
+		} else {
+			fmt.Printf("%v: %v %v\n", i, w.data[i].origin, w.data[i].value)
+		}
 	}
 	fmt.Printf("=====================================\n\n")
 }
@@ -87,7 +93,7 @@ func (w *WinnerTreeData) winnerTreeInit() {
 
 	// build tree
 	w.data = make([]TreeNode, w.sz)
-	for i := w.sz - 1; i >= 0; i-- {
+	for i := w.sz - 1; i >= 1; i-- {
 		if i >= w.sz/2 { // leaves
 			// fmt.Printf("%v %v %v\n", i, i-w.sz/2, w.sc[i-w.sz/2])
 			if w.sc[i-w.sz/2] == nil || w.sc[i-w.sz/2].Scan() == false { // empty chunk
@@ -143,7 +149,8 @@ func (w *WinnerTreeData) winnerTreeIsEmpty() bool {
 
 func (w *WinnerTreeData) winnerTreeTop() string {
 	if w.winnerTreeIsEmpty() == false {
-		return w.data[1].value
+		// return w.data[1].value
+		return w.data[w.data[1].origin+w.sz/2].value
 	}
 
 	panic("Topping a empty winner tree")

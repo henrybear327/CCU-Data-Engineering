@@ -271,6 +271,7 @@ func mergeChunks() {
 	resultFd := createResultFile()
 	fd := bufio.NewWriter(resultFd)
 
+	winnerTreeData.winnerTreePrint()
 	for winnerTreeData.winnerTreeIsEmpty() == false {
 		// fmt.Println("Top = " + winnerTreeData.winnerTreeTop())
 		fd.WriteString(winnerTreeData.winnerTreeTop() + "\n")
@@ -319,34 +320,11 @@ func cleanup() {
 	fmt.Printf("Time elapsed %v\n\n", elapsed)
 }
 
-func readTest() {
-	inputFile := openFile(*config.inputFilename, "Input file is not found!")
-
-	scanner := bufio.NewScanner(inputFile)
-
-	buf := make([]byte, 0, 100000)
-	scanner.Buffer(buf, 100000)
-
-	for scanner.Scan() {
-		str := scanner.Text()
-		str += "\n"
-		fmt.Printf("%v", str) // Println will add back the final '\n'
-
-		// tmp := scanner.Bytes()
-		// fmt.Println(tmp)
-	}
-
-	// reader := bufio.NewReader(inputFile)
-	// for line, err := reader.ReadString('\n'); err == nil; line, err = reader.ReadString('\n') {
-	// 	fmt.Printf("%q\n", line)
-	// }
-}
-
 func main() {
 	start := time.Now()
 	parseCommandLineArgument()
 
-	// cou profiling
+	// cpu profiling
 	if *config.cpuprofile != "" {
 		f, err := os.Create(*config.cpuprofile)
 		if err != nil {
@@ -375,6 +353,4 @@ func main() {
 
 	elapsed := time.Since(start)
 	fmt.Printf("Total runtime %v\n\n", elapsed)
-
-	// readTest()
 }
