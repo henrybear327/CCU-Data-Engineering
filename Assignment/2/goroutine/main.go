@@ -21,12 +21,14 @@ var wg sync.WaitGroup
 
 var total time.Duration
 
-func mySort(in chan []int) {
+func mySort(in chan []int, out chan []int) {
 	defer wg.Done()
 	start := time.Now()
-	sort.Ints(<-in)
+	data := <-in
+	sort.Ints(data)
 	fmt.Println(time.Since(start))
 	total += time.Since(start)
+	out <- data
 }
 
 func mySort2(in []int) {
@@ -53,12 +55,20 @@ func main() {
 	wg.Add(p)
 	for i := 0; i < p; i++ {
 		// sort 1
-		var newData []int
-		newChannel := make(chan []int, 1)
-		newData = make([]int, len(data[n/p*i:n/p*(i+1)]))
-		copy(newData, data[n/p*i:n/p*(i+1)])
-		go mySort(newChannel)
-		newChannel <- newData
+		// fmt.Printf("i = %v\n", i)
+		go func(idx int) {
+			// fmt.Printf("func i = %v\n", idx)
+			// fmt.Println(n, p, len(data))
+			var newData []int
+			newChannelIn := make(chan []int, 1)
+			newChannelOut := make(chan []int, 1)
+			newData = make([]int, len(data[n/p*idx:n/p*(idx+1)]))
+			copy(newData, data[n/p*idx:n/p*(idx+1)])
+			go mySort(newChannelIn, newChannelOut)
+			newChannelIn <- newData
+			out := <-newChannelOut
+			copy(data[n/p*idx:n/p*(idx+1)], out)
+		}(i)
 
 		// sort 2
 		// var newData []int
