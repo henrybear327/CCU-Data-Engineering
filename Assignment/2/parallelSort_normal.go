@@ -77,10 +77,10 @@ func mergeSortNormal(depth, left, right int, data []string, wg *sync.WaitGroup) 
 
 	mid := left + (right-left)/2
 	newWG.Add(1)
-	mergeSortNormal(depth+1, left, mid, data, &newWG)
+	go mergeSortNormal(depth+1, left, mid, data, &newWG)
 
 	newWG.Add(1)
-	mergeSortNormal(depth+1, mid, right, data, &newWG)
+	go mergeSortNormal(depth+1, mid, right, data, &newWG)
 
 	newWG.Wait()
 
