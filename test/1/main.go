@@ -94,4 +94,8 @@ func main() {
 	output, _ := os.Create("/dev/stdout")
 	printer := bufio.NewWriter(output)
 	read(scanner, printer)
+
+	printer.Flush()
+	input.Close()
+	output.Close()
 }

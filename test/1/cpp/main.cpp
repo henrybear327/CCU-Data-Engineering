@@ -5,7 +5,7 @@ using namespace std;
 #define BUFFER_SIZE 100000000
 
 char buffer[BUFFER_SIZE];
-const char *delimiter = "\t ";
+const char *delimiter = "\n\t ";
 
 unordered_map<string, int> cnt;
 typedef pair<int, string> ii;
