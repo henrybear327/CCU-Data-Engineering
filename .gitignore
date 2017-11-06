@@ -1,4 +1,6 @@
 *.swp
+a.out
+main
 *.gch
 *.orig
 .DS_Store

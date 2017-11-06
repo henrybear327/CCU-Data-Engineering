@@ -4,10 +4,9 @@ import time
 import pathlib
 from subprocess import run
 
-in_file = "./testcase/number_{0}M.in"
-out_file = "./testcase/number_{0}M.out"
+in_file = "/tmp/testcase/{0}.in"
+out_file = "/tmp/testcase/{0}.out"
 my_out_file = "number.my.out"
-fileList = ['50', '100', '200', '300', '400', '500', '600']
 
 def time_bash_sort(inp, out):
     print("\nTiming system sort using {0} as input and {1} as output".format(inp, out))

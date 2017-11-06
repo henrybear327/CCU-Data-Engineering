@@ -2,12 +2,12 @@
 
 using namespace std;
 
-#define BUFFER_SIZE 10000000
+#define BUFFER_SIZE 100000000
 
 char buffer[BUFFER_SIZE];
-const char *delimiter = "\r\n ";
+const char *delimiter = "\n\t ";
 
-map<string, int> cnt;
+unordered_map<string, int> cnt;
 typedef pair<int, string> ii;
 
 struct classcomp {
@@ -36,8 +36,10 @@ int main()
         ans.insert(ii(i.second, i.first));
     }
 
-    for (auto i : ans)
-        printf("%20s %10d\n", i.second.c_str(), i.first);
-
+    for (auto i : ans) {
+        // printf("%10d %20s\n", i.first, i.second.c_str());
+        printf("%d %s\n", i.first, i.second.c_str());
+    }
+    
     return 0;
 }
