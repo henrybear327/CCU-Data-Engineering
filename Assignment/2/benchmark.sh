@@ -1,5 +1,4 @@
-#
-/bin/bash
+#!/bin/bash
 
 go build -o my_sort *.go 
 
@@ -9,7 +8,7 @@ mkdir -p /tmp/testcases/my/log
 CHUNKS=100
 DEPTH=4
 
-for (( i=1; i<=1000000000; i*=10))
+for ((i=1; i<=1000000000; i*=10))
 do
 	echo "benchmarking $i.in"
 	# (time ./my_sort -i /tmp/testcases/$i.in -o /tmp/testcases/my/$i.nosort.out -chunks $CHUNKS -depth=$DEPTH -freq=1 -p=0) 2>&1 | tee /tmp/testcases/my/log/$i.nosort.out.output
