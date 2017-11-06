@@ -3,6 +3,9 @@ package main
 /*
 godoc -http=":6060"
 
+go tool pprof mysort.prof 
+web
+
 Merge sort
 
 Procedures:
