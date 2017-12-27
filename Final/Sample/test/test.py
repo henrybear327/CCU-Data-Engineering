@@ -1,9 +1,10 @@
 import re
 
-repeat = int(input("n = "))
+repeat = 30
 
 pattern = "a?" * repeat + "a" * repeat
 string = "a" * 2 * repeat
+# string = "a" * repeat
 
 print(f'"{pattern}" "{string}"')
 

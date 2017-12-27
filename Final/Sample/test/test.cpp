@@ -2,11 +2,28 @@
 #include <iostream>
 #include <string>
 #include <regex>
+#include <string>
 
 int main ()
 {
+  std::string str, regex;
+  int repeat = 30;
 
-  if (std::regex_match ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", std::regex("a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?a?aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") ))
+  // for(int i = 0; i < repeat * 2; i++) // exact
+  //   str += "a";
+
+  for(int i = 0; i < repeat; i++) // partial
+    str += "a";
+  
+  for(int i = 0; i < repeat; i++)
+    regex += "a?";
+  for(int i = 0; i < repeat; i++)
+    regex += "a";
+  
+  std::cout << str << std::endl;
+  std::cout << regex << std::endl;
+
+  if (std::regex_match (str, std::regex(regex) ))
     std::cout << "string literal matched\n";
 
     /*
