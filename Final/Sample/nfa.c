@@ -97,6 +97,8 @@ char *re2post(char *re)
     for (; nalt > 0; nalt--)
         *dst++ = '|';
     *dst = 0;
+
+    printf("Postfix %s\n", buf);
     return buf;
 }
 
