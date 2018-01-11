@@ -1,0 +1,11 @@
+Coding phase
+1. infix to postfix
+2. compile into NFA, DFA
+3. perform matching
+
+Testing strategies
+1. generate regex from a set of strings
+2. generate strings from a set of regex
+
+Performance evaluation
+1. Compare against Java, Nodejs, c++, python, grep, agrep
