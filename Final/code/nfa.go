@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/golang-collections/collections/stack"
 )
 
 /* Helper functions */
@@ -41,6 +43,12 @@ func parseArgument() (string, string) {
 	return *str, *regex
 }
 
+// StackData is the data structure that is stored in the stack
+type StackData struct {
+	components   int
+	alternations int
+}
+
 func regex2postfix(regex string) string {
 	/*
 	   1. Scan the infix expression from left to right.
@@ -57,23 +65,94 @@ func regex2postfix(regex string) string {
 	   abcd^e-fgh*+^*+i-
 	*/
 
-	debugPrintln("regex", regex, "to postfix")
+	// Error checking
+	// change concat sign to a special char for the future escaping to work
 
-	return ""
+	res := ""
+	s := stack.New()
+	components := 0
+	alternations := 0
+	for _, c := range regex {
+		// debugPrintf("%c\n", c)
+		switch c {
+		case '(':
+			if components > 1 {
+				res += "."
+				components--
+			}
+
+			s.Push(StackData{components, alternations})
+			components = 0
+			alternations = 0
+		case ')':
+			// do cleanup
+			// let the components before it concat
+			components--
+			for components > 0 {
+				res += "."
+				components--
+			}
+
+			// show all alternation
+			for alternations > 0 {
+				res += "|"
+				alternations--
+			}
+
+			// restore the state
+			top := s.Pop().(StackData)
+			alternations = top.alternations
+			components = top.components
+			components++ // count yourself!
+		case '|':
+			// let the components before it concat
+			components--
+			for components > 0 {
+				res += "."
+				components--
+			}
+
+			alternations++
+		case '*', '+', '?':
+			res += string(c)
+		default:
+			if components > 1 {
+				res += "."
+				components--
+			}
+			components++
+
+			res += string(c)
+		}
+	}
+
+	components--
+	for components > 0 { // add . to concat all components together
+		res += "."
+		components--
+	}
+
+	for alternations > 0 { // print all remaining alternations
+		res += "|"
+		alternations--
+	}
+
+	fmt.Println("infix", regex, "to postfix", res)
+	return res
 }
 
 func postfix2nfa(postfix string) {
-	debugPrintln("postfix", postfix, "to nfa")
+	// debugPrintln("postfix", postfix, "to nfa")
 }
 
 func matching(str string, regex string) {
-	debugPrintln("matching", str, "against", regex)
+	// debugPrintln("matching", str, "against", regex)
 }
 
 func main() {
 	str, regex := parseArgument()
-	debugPrintf("String is: %v\n", str)
-	debugPrintf("Pattern is: %v\n\n", regex)
+	// debugPrintf("String is: %v\n", str)
+	// debugPrintf("Pattern is: %v\n\n", regex)
 
 	postfix := regex2postfix(regex)
 

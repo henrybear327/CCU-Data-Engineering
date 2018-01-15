@@ -23,6 +23,8 @@
  */
 char *re2post(char *re)
 {
+    printf("infix %s ", re);
+    
     int nalt, natom;
     static char buf[8000];
     char *dst;
@@ -98,7 +100,7 @@ char *re2post(char *re)
         *dst++ = '|';
     *dst = 0;
 
-    printf("Postfix %s\n", buf);
+    printf("to postfix %s\n", buf);
     return buf;
 }
 
