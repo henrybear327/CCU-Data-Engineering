@@ -17,8 +17,18 @@ cd ../Sample && time gcc -O2 nfa.c -o nfa
 echo ""
 
 echo "Running testcases"
-TESTCASES=( "a?" "(a?b)|c" "(a?b)|c|d" "abcdef" "(ab)+(cd)?" "((ab)+|(cd)?)a" "abc(a?b*c+)|(ccc+)|(c+a*a?)cba")
+
 PATTERN="asdfghjkkk"
+
+TESTCASES=( "a?" 
+"(a?b)|c" 
+"(a?b)|c|d" 
+"abcdef" 
+"(ab)+(cd)?" 
+"((ab)+|(cd)?)a" 
+"abc(a?b*c+)|(ccc+)|(c+a*a?)cba"
+"a|(b|c|d)|efghi|(agfhe|a+)|b*|c+|C?")
+
 for i in "${TESTCASES[@]}"
 do
     # echo "../code/nfa -pat $i -str $PATTERN"
