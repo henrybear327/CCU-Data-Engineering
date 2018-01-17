@@ -35,9 +35,9 @@ func parseArgument() (string, string) {
 
 	flag.Parse()
 
-	if len(*str) == 0 {
-		panic("No string")
-	}
+	// if len(*str) == 0 { // allow empty string
+	// 	panic("No string")
+	// }
 
 	if len(*regex) == 0 {
 		panic("No pattern")
@@ -54,7 +54,7 @@ type StackData struct {
 
 // Character is the data structure for holding the character, concat signal, etc.
 type Character struct {
-	control int // -1 for match, 0 for nil, 1 for regular rune, 2 ...
+	control int // -1 for match, 0 for epsilon / nil, 1 for regular rune, 2 ...
 	c       rune
 }
 
@@ -152,13 +152,13 @@ func regex2postfix(regex string) string {
 
 // NFAState is a single state in NFA
 type NFAState struct {
-	control int  // 0 nil, 1 for regular rune
+	control int  // -1 for match, 0 epsilon / nil, 1 for regular rune
 	c       rune // int32, represents a Unicode code point
 
 	out1 *NFAState
 	out2 *NFAState
 
-	lastlist int // WTF?
+	timestamp int // when pushed into the list, update this
 }
 
 // NFAFragment is a couple of connected NFAState during the "build" process of NFA
@@ -318,8 +318,53 @@ func debugPrintNFA(cur *NFAState) {
 	dfsNFA(cur, seen)
 }
 
-func matching(str string, regex string) {
-	// debugPrintln("matching", str, "against", regex)
+func addState(cur *NFAState, nextStates *[]*NFAState, timer int) {
+	if cur == nil || cur.timestamp == timer { // nil, or already in list, return
+		return
+	}
+
+	cur.timestamp = timer
+	if cur.control == 0 { // epsilon edge, go!
+		addState(cur.out1, nextStates, timer)
+		addState(cur.out2, nextStates, timer)
+		return
+	}
+
+	*nextStates = append(*nextStates, cur)
+}
+
+func exactMatch(startingNFAState *NFAState, totalStates int, str string) bool {
+	debugPrintln("matching", str)
+
+	currentStates := make([]*NFAState, 0)
+	addState(startingNFAState, &currentStates, 1) // timer starts at 1
+	fmt.Println("starting len", len(currentStates))
+
+	nextStates := make([]*NFAState, 0)
+	for t, c := range str {
+		// go
+		fmt.Println("loop, matching", string(c))
+
+		for _, j := range currentStates {
+			if j.control == 1 && j.c == c {
+				fmt.Println("Edge matched! Advancing", getNumbering(j))
+				addState(j.out1, &nextStates, t+2) // timers starts at 1, add the starting round => +2
+			}
+		}
+
+		fmt.Println("len", len(nextStates))
+		currentStates = nextStates
+		nextStates = make([]*NFAState, 0)
+	}
+
+	// check matching
+	for _, c := range currentStates {
+		fmt.Println("checking", c)
+		if c.control == -1 {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {
@@ -333,11 +378,14 @@ func main() {
 	debugNumberingNFA = make(map[*NFAState]int)
 
 	startingNFAState, totalStates := postfix2nfa(postfix)
-	if totalStates-1 > len(postfix) {
+	debugPrintNFA(startingNFAState)
+	if totalStates > len(postfix) {
 		panic("NFA state overflow!")
 	}
 
-	debugPrintNFA(startingNFAState)
-
-	matching(str, regex)
+	if exactMatch(startingNFAState, totalStates, str) == true {
+		fmt.Println("Exact match")
+	} else {
+		fmt.Println("Mismatch")
+	}
 }
