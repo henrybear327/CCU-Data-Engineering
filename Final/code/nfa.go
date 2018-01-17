@@ -54,7 +54,7 @@ type StackData struct {
 
 // Character is the data structure for holding the character, concat signal, etc.
 type Character struct {
-	control int // 0 for nil, 1 for regular rune, 2 ...
+	control int // -1 for match, 0 for nil, 1 for regular rune, 2 ...
 	c       rune
 }
 
@@ -258,7 +258,11 @@ func postfix2nfa(postfix string) *NFAState {
 	}
 
 	debugPrintln("\n\n\n")
-	return s.Pop().(*NFAFragment).startingNFAState
+
+	matchState := NFAState{-1, ' ', nil, nil, 0}
+	result := s.Pop().(*NFAFragment)
+	connectNFAFragments(result, &matchState)
+	return result.startingNFAState
 }
 
 func dfsNFA(cur *NFAState, seen map[*NFAState]bool) {
