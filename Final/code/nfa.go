@@ -13,6 +13,15 @@ var (
 	counter           int
 )
 
+const (
+	// ANSIColorRed is terminal color
+	ANSIColorRed = "\x1b[31m"
+	// ANSIColorGreen is terminal color
+	ANSIColorGreen = "\x1b[32m"
+	// ANSIColorReset is terminal color
+	ANSIColorReset = "\x1b[0m"
+)
+
 /* Helper functions */
 
 func debugPrintf(format string, str ...interface{}) {
@@ -54,30 +63,12 @@ type StackData struct {
 
 // Character is the data structure for holding the character, concat signal, etc.
 type Character struct {
-	control int // -1 for match, 0 for epsilon / nil, 1 for regular rune, 2 ...
+	control int // -1 for match, 0 for epsilon / nil, 1 for regular rune, 2 for control
 	c       rune
 }
 
-func regex2postfix(regex string) string {
-	/*
-	   1. Scan the infix expression from left to right.
-	   2. If the scanned character is an operand, output it.
-	   3. Else,
-	   ... 3.1 If the precedence of the scanned operator is greater than the precedence of the operator in the stack(or the stack is empty), push it.
-	   ... 3.2 Else, Pop the operator from the stack until the precedence of the scanned operator is less-equal to the precedence of the operator residing on the top of the stack. Push the scanned operator to the stack.
-	   4. If the scanned character is an ‘(‘, push it to the stack.
-	   5. If the scanned character is an ‘)’, pop and output from the stack until an ‘(‘ is encountered.
-	   6. Repeat steps 2-6 until infix expression is scanned.
-	   7. Pop and output from the stack until it is not empty.
-
-	   a+b*(c^d-e)^(f+g*h)-i
-	   abcd^e-fgh*+^*+i-
-	*/
-
-	// Error checking
-	// change concat sign to a special char for the future escaping to work
-
-	res := ""
+func regex2postfix(regex string) []Character {
+	res := make([]Character, 0)
 	s := stack.New()
 	components := 0
 	alternations := 0
@@ -86,7 +77,7 @@ func regex2postfix(regex string) string {
 		switch c {
 		case '(':
 			if components > 1 {
-				res += "."
+				res = append(res, Character{2, '.'})
 				components--
 			}
 
@@ -98,17 +89,21 @@ func regex2postfix(regex string) string {
 			// let the components before it concat
 			components--
 			for components > 0 {
-				res += "."
+				res = append(res, Character{2, '.'})
 				components--
 			}
 
 			// show all alternation
 			for alternations > 0 {
-				res += "|"
+				res = append(res, Character{2, '|'})
 				alternations--
 			}
 
 			// restore the state
+			if s.Len() == 0 {
+				panic("Empty stack! WTF")
+			}
+
 			top := s.Pop().(StackData)
 			alternations = top.alternations
 			components = top.components
@@ -117,42 +112,54 @@ func regex2postfix(regex string) string {
 			// let the components before it concat
 			components--
 			for components > 0 {
-				res += "."
+				res = append(res, Character{2, '.'})
 				components--
 			}
 
 			alternations++
 		case '*', '+', '?':
-			res += string(c)
+			res = append(res, Character{2, c})
 		default:
 			if components > 1 {
-				res += "."
+				res = append(res, Character{2, '.'})
 				components--
 			}
 			components++
 
-			res += string(c)
+			res = append(res, Character{1, c})
 		}
 	}
 
 	components--
 	for components > 0 { // add . to concat all components together
-		res += "."
+		res = append(res, Character{2, '.'})
 		components--
 	}
 
 	for alternations > 0 { // print all remaining alternations
-		res += "|"
+		res = append(res, Character{2, '|'})
 		alternations--
 	}
 
-	fmt.Println("infix", regex, "to postfix", res)
+	// debugPrintln("infix", regex, "to postfix", res)
+	debugPrintln("infix", regex, "to postfix")
+	for _, c := range res {
+		if c.control == 1 {
+			debugPrintf("%v%v%v", ANSIColorGreen, string(c.c), ANSIColorReset)
+		} else if c.control == 2 {
+			debugPrintf("%v%v%v", ANSIColorRed, string(c.c), ANSIColorReset)
+		} else {
+			panic("WTF is being filled to the postfix Character struct?")
+		}
+	}
+	debugPrintln("")
+
 	return res
 }
 
 // NFAState is a single state in NFA
 type NFAState struct {
-	control int  // -1 for match, 0 epsilon / nil, 1 for regular rune
+	control int  // -1 for match, 0 epsilon / nil, 1 for regular rune, 2 for control
 	c       rune // int32, represents a Unicode code point
 
 	out1 *NFAState
@@ -382,29 +389,30 @@ func match(startingNFAState *NFAState, totalStates int, str string) int {
 
 func main() {
 	str, regex := parseArgument()
-	// debugPrintf("String is: %v\n", str)
-	// debugPrintf("Pattern is: %v\n\n", regex)
+	debugPrintf("String is: %v\n", str)
+	debugPrintf("Pattern is: %v\n\n", regex)
 
 	postfix := regex2postfix(regex)
+	fmt.Println(postfix)
 
-	counter = 1
-	debugNumberingNFA = make(map[*NFAState]int)
+	// counter = 1
+	// debugNumberingNFA = make(map[*NFAState]int)
 
-	startingNFAState, totalStates := postfix2nfa(postfix)
-	debugPrintNFA(startingNFAState)
-	if totalStates > len(postfix) {
-		panic("NFA state overflow!")
-	}
+	// startingNFAState, totalStates := postfix2nfa(postfix)
+	// debugPrintNFA(startingNFAState)
+	// if totalStates > len(postfix) {
+	// 	panic("NFA state overflow!")
+	// }
 
-	res := match(startingNFAState, totalStates, str)
-	fmt.Println("res", res)
-	if res == len(str) {
-		fmt.Println("Exact match:", str)
-	} else if 0 <= res && res < len(str) {
-		fmt.Println("Partial match:", str[0:res])
-	} else if res == -1 {
-		fmt.Println("Mismatch")
-	} else {
-		panic("WTF is going on with match() return value")
-	}
+	// res := match(startingNFAState, totalStates, str)
+	// fmt.Println("res", res)
+	// if res == len(str) {
+	// 	fmt.Println("Exact match:", str)
+	// } else if 0 <= res && res < len(str) {
+	// 	fmt.Println("Partial match:", str[0:res])
+	// } else if res == -1 {
+	// 	fmt.Println("Mismatch")
+	// } else {
+	// 	panic("WTF is going on with match() return value")
+	// }
 }
