@@ -333,13 +333,25 @@ func addState(cur *NFAState, nextStates *[]*NFAState, timer int) {
 	*nextStates = append(*nextStates, cur)
 }
 
-func exactMatch(startingNFAState *NFAState, totalStates int, str string) bool {
+func isMatched(currentStates []*NFAState) bool {
+	for _, c := range currentStates {
+		// fmt.Println("checking", c)
+		if c.control == -1 {
+			return true // exact match
+		}
+	}
+	return false
+}
+
+// returns -1 on mismatch, or the one-past-last index of the partial matched string, starting from theh beginning
+func match(startingNFAState *NFAState, totalStates int, str string) int {
 	// debugPrintln("matching", str)
+
+	partialMatch := -1
 
 	currentStates := make([]*NFAState, 0)
 	addState(startingNFAState, &currentStates, 1) // timer starts at 1
 	// fmt.Println("starting len", len(currentStates))
-
 	nextStates := make([]*NFAState, 0)
 	for t, c := range str {
 		// go
@@ -355,16 +367,17 @@ func exactMatch(startingNFAState *NFAState, totalStates int, str string) bool {
 		// fmt.Println("len", len(nextStates))
 		currentStates = nextStates
 		nextStates = make([]*NFAState, 0)
-	}
 
-	// check matching
-	for _, c := range currentStates {
-		// fmt.Println("checking", c)
-		if c.control == -1 {
-			return true
+		if isMatched(currentStates) {
+			partialMatch = t + 1
 		}
 	}
-	return false
+
+	if isMatched(currentStates) && partialMatch == -1 { // empty string case
+		partialMatch = 0
+	}
+
+	return partialMatch // -1 no match, else: longest match position
 }
 
 func main() {
@@ -383,9 +396,15 @@ func main() {
 		panic("NFA state overflow!")
 	}
 
-	if exactMatch(startingNFAState, totalStates, str) == true {
-		fmt.Println("Exact match")
-	} else {
+	res := match(startingNFAState, totalStates, str)
+	fmt.Println("res", res)
+	if res == len(str) {
+		fmt.Println("Exact match:", str)
+	} else if 0 <= res && res < len(str) {
+		fmt.Println("Partial match:", str[0:res])
+	} else if res == -1 {
 		fmt.Println("Mismatch")
+	} else {
+		panic("WTF is going on with match() return value")
 	}
 }
