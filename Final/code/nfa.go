@@ -145,14 +145,17 @@ func regex2postfix(regex string) []Character {
 	debugPrintln("infix", regex, "to postfix")
 	for _, c := range res {
 		if c.control == 1 {
-			debugPrintf("%v%v%v", ANSIColorGreen, string(c.c), ANSIColorReset)
+			// debugPrintf("%v%v%v", ANSIColorGreen, string(c.c), ANSIColorReset)
+			fmt.Printf("%v%v%v", ANSIColorGreen, string(c.c), ANSIColorReset)
 		} else if c.control == 2 {
-			debugPrintf("%v%v%v", ANSIColorRed, string(c.c), ANSIColorReset)
+			// debugPrintf("%v%v%v", ANSIColorRed, string(c.c), ANSIColorReset)
+			fmt.Printf("%v%v%v", ANSIColorRed, string(c.c), ANSIColorReset)
 		} else {
 			panic("WTF is being filled to the postfix Character struct?")
 		}
 	}
-	debugPrintln("")
+	// debugPrintln("")
+	fmt.Println("")
 
 	return res
 }
@@ -398,7 +401,7 @@ func main() {
 	debugPrintf("Pattern is: %v\n\n", regex)
 
 	postfix := regex2postfix(regex)
-	fmt.Println(postfix)
+	debugPrintln(postfix)
 
 	counter = 1
 	debugNumberingNFA = make(map[*NFAState]int)
@@ -410,7 +413,7 @@ func main() {
 	}
 
 	res := match(startingNFAState, totalStates, str)
-	fmt.Println("res", res)
+	debugPrintln("res", res)
 	if res == len(str) {
 		fmt.Println("Exact match:", str)
 	} else if 0 <= res && res < len(str) {
