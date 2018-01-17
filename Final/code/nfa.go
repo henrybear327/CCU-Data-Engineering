@@ -117,67 +117,107 @@ type Character struct {
 	c       rune
 }
 
+func addValidCharacter(components *int, res *[]Character, c rune) {
+	if *components > 1 {
+		*res = append(*res, Character{2, '.'})
+		*components--
+	}
+	*components++
+
+	*res = append(*res, Character{1, c})
+}
+
+func isOperator(c rune) bool {
+	switch c {
+	case '+', '?', '*', '|', '(', ')':
+		return true
+	default:
+		return false
+	}
+}
+
 func regex2postfix(regex string) []Character {
 	res := make([]Character, 0)
 	s := stack.New()
 	components := 0
 	alternations := 0
+	prev := rune(' ')
 	for _, c := range regex {
 		// debugPrintf("%c\n", c)
-		switch c {
-		case '(':
-			if components > 1 {
-				res = append(res, Character{2, '.'})
+		if c == '\\' && prev != '\\' {
+			// pass this round
+			debugPrintln("Pass, first ", string(c))
+			prev = c
+		} else if prev == '\\' {
+			if isOperator(c) {
+				// treat this as normal character
+				debugPrintln("Escaped, ", string(c))
+				addValidCharacter(&components, &res, c)
+				prev = ' '
+			} else {
+				// no need to escape, e.g. \\a?\\\
+				debugPrintln("Makeup, ", string(prev), string(c))
+				addValidCharacter(&components, &res, prev)
+				addValidCharacter(&components, &res, c)
+				prev = ' '
+			}
+		} else {
+			debugPrintln("Switch", string(c))
+			switch c {
+			case '(':
+				if components > 1 {
+					res = append(res, Character{2, '.'})
+					components--
+				}
+
+				s.Push(StackData{components, alternations})
+				components = 0
+				alternations = 0
+			case ')':
+				// do cleanup
+				// let the components before it concat
 				components--
-			}
+				for components > 0 {
+					res = append(res, Character{2, '.'})
+					components--
+				}
 
-			s.Push(StackData{components, alternations})
-			components = 0
-			alternations = 0
-		case ')':
-			// do cleanup
-			// let the components before it concat
-			components--
-			for components > 0 {
-				res = append(res, Character{2, '.'})
+				// show all alternation
+				for alternations > 0 {
+					res = append(res, Character{2, '|'})
+					alternations--
+				}
+
+				// restore the state
+				if s.Len() == 0 {
+					panic("Empty stack! WTF")
+				}
+
+				top := s.Pop().(StackData)
+				alternations = top.alternations
+				components = top.components
+				components++ // count yourself!
+			case '|':
+				// let the components before it concat
 				components--
+				for components > 0 {
+					res = append(res, Character{2, '.'})
+					components--
+				}
+
+				alternations++
+			case '*', '+', '?':
+				res = append(res, Character{2, c})
+			default:
+				addValidCharacter(&components, &res, c)
 			}
 
-			// show all alternation
-			for alternations > 0 {
-				res = append(res, Character{2, '|'})
-				alternations--
-			}
-
-			// restore the state
-			if s.Len() == 0 {
-				panic("Empty stack! WTF")
-			}
-
-			top := s.Pop().(StackData)
-			alternations = top.alternations
-			components = top.components
-			components++ // count yourself!
-		case '|':
-			// let the components before it concat
-			components--
-			for components > 0 {
-				res = append(res, Character{2, '.'})
-				components--
-			}
-
-			alternations++
-		case '*', '+', '?':
-			res = append(res, Character{2, c})
-		default:
-			if components > 1 {
-				res = append(res, Character{2, '.'})
-				components--
-			}
-			components++
-
-			res = append(res, Character{1, c})
+			prev = c
 		}
+	}
+
+	if prev == '\\' {
+		addValidCharacter(&components, &res, prev) // add the last \ if required
 	}
 
 	components--
@@ -192,7 +232,8 @@ func regex2postfix(regex string) []Character {
 	}
 
 	// debugPrintln("infix", regex, "to postfix", res)
-	debugPrintln("infix", regex, "to postfix")
+	// debugPrintln("infix", regex, "to postfix")
+	fmt.Printf("regex %v to postfix: ", regex)
 	for _, c := range res {
 		if c.control == 1 {
 			// debugPrintf("%v%v%v", ANSIColorGreen, string(c.c), ANSIColorReset)
@@ -401,8 +442,8 @@ func match(startingNFAState *NFAState, totalStates int, str string) int {
 
 func main() {
 	str, regex := parseArgument()
-	debugPrintf("String is: %v\n", str)
-	debugPrintf("Pattern is: %v\n\n", regex)
+	fmt.Printf("Regex is: %v\n", regex)
+	fmt.Printf("String is: %v\n\n", str)
 
 	postfix := regex2postfix(regex)
 	debugPrintln(postfix)
@@ -419,9 +460,9 @@ func main() {
 	res := match(startingNFAState, totalStates, str)
 	debugPrintln("res", res)
 	if res == len(str) {
-		fmt.Println("Exact match:", str)
+		fmt.Printf("Exact match: %v%v%v\n", ANSIColorGreen, str, ANSIColorReset)
 	} else if 0 <= res && res < len(str) {
-		fmt.Println("Partial match:", str[0:res])
+		fmt.Printf("Partial match: %v%v%v%v\n", ANSIColorGreen, str[0:res], ANSIColorReset, str[res:])
 	} else if res == -1 {
 		fmt.Println("Mismatch")
 	} else {
