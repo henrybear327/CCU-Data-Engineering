@@ -21,6 +21,8 @@ const (
 	ANSIColorGreen = "\x1b[32m"
 	// ANSIColorReset is terminal color
 	ANSIColorReset = "\x1b[0m"
+	// ANSIColorBlue is terminal color
+	ANSIColorBlue = "\x1b[33m"
 )
 
 /* Helper functions */
@@ -113,8 +115,18 @@ type StackData struct {
 
 // Character is the data structure for holding the character, concat signal, etc.
 type Character struct {
-	control int // -1 for match, 0 for epsilon / nil, 1 for regular rune, 2 for control
+	control int // -1 for match, 0 for epsilon / nil, 1 for regular rune, 2 for control, 3 for . (match any)
 	c       rune
+}
+
+func addMatchAnyCharacter(components *int, res *[]Character) {
+	if *components > 1 {
+		*res = append(*res, Character{2, '.'}) // concat
+		*components--
+	}
+	*components++
+
+	*res = append(*res, Character{3, '.'}) // match any
 }
 
 func addValidCharacter(components *int, res *[]Character, c rune) {
@@ -129,7 +141,7 @@ func addValidCharacter(components *int, res *[]Character, c rune) {
 
 func isOperator(c rune) bool {
 	switch c {
-	case '+', '?', '*', '|', '(', ')':
+	case '+', '?', '*', '|', '(', ')', '.':
 		return true
 	default:
 		return false
@@ -145,23 +157,22 @@ func regex2postfix(regex string) []Character {
 	for _, c := range regex {
 		// debugPrintf("%c\n", c)
 		if c == '\\' && prev != '\\' {
-			// pass this round
+			// pass this round, first \ is matched
 			debugPrintln("Pass, first ", string(c))
 			prev = c
-		} else if prev == '\\' {
-			if isOperator(c) {
+		} else if prev == '\\' { // has \ preceding this current one
+			if isOperator(c) { // escape!
 				// treat this as normal character
 				debugPrintln("Escaped, ", string(c))
 				addValidCharacter(&components, &res, c)
-				prev = ' '
 			} else {
 				// no need to escape, e.g. \\a?\\\
 				debugPrintln("Makeup, ", string(prev), string(c))
 				addValidCharacter(&components, &res, prev)
 				addValidCharacter(&components, &res, c)
-				prev = ' '
 			}
-		} else {
+			prev = ' '
+		} else { // normal case
 			debugPrintln("Switch", string(c))
 			switch c {
 			case '(':
@@ -208,6 +219,8 @@ func regex2postfix(regex string) []Character {
 				alternations++
 			case '*', '+', '?':
 				res = append(res, Character{2, c})
+			case '.':
+				addMatchAnyCharacter(&components, &res)
 			default:
 				addValidCharacter(&components, &res, c)
 			}
@@ -241,6 +254,9 @@ func regex2postfix(regex string) []Character {
 		} else if c.control == 2 {
 			// debugPrintf("%v%v%v", ANSIColorRed, string(c.c), ANSIColorReset)
 			fmt.Printf("%v%v%v", ANSIColorRed, string(c.c), ANSIColorReset)
+		} else if c.control == 3 {
+			// debugPrintf("%v%v%v", ANSIColorRed, string(c.c), ANSIColorReset)
+			fmt.Printf("%v%v%v", ANSIColorBlue, string(c.c), ANSIColorReset)
 		} else {
 			panic("WTF is being filled to the postfix Character struct?")
 		}
@@ -354,8 +370,8 @@ func postfix2nfa(postfix []Character) (*NFAState, int) {
 			default:
 				panic("Unrecognized operator WTF")
 			}
-		} else if c.control == 1 { // for valid characters
-			newState := NFAState{Character{1, c.c}, nil, nil, 0}
+		} else if c.control == 1 || c.control == 3 { // for valid characters, and match any
+			newState := NFAState{Character{c.control, c.c}, nil, nil, 0}
 			totalStates++
 			debugPrintNFA(&newState)
 
@@ -418,7 +434,7 @@ func match(startingNFAState *NFAState, totalStates int, str string) int {
 		// fmt.Println("loop, matching", string(c))
 
 		for _, j := range currentStates {
-			if j.c.control == 1 && j.c.c == c { // match only valid characters
+			if (j.c.control == 1 && j.c.c == c) || j.c.control == 3 { // match only valid characters
 				// fmt.Println("Edge matched! Advancing", getNumbering(j))
 				addState(j.out1, &nextStates, t+2) // timers starts at 1, add the starting round => +2
 			}
