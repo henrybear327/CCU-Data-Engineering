@@ -176,10 +176,11 @@ func connectNFAFragments(first *NFAFragment, second *NFAState) {
 	}
 }
 
-func postfix2nfa(postfix string) *NFAState {
+func postfix2nfa(postfix string) (*NFAState, int) {
 	// debugPrintln("postfix", postfix, "to nfa")
 
 	s := stack.New()
+	totalStates := 0
 
 	for _, c := range postfix {
 		debugPrintln("\nWorking on", string(c))
@@ -199,6 +200,7 @@ func postfix2nfa(postfix string) *NFAState {
 			first := s.Pop().(*NFAFragment)
 
 			newState := NFAState{0, c, first.startingNFAState, second.startingNFAState, 0}
+			totalStates++
 			debugPrintNFA(&newState)
 
 			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
@@ -211,6 +213,7 @@ func postfix2nfa(postfix string) *NFAState {
 			first := s.Pop().(*NFAFragment)
 
 			newState := NFAState{0, c, first.startingNFAState, nil, 0}
+			totalStates++
 			debugPrintNFA(&newState)
 
 			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
@@ -223,6 +226,7 @@ func postfix2nfa(postfix string) *NFAState {
 			first := s.Pop().(*NFAFragment)
 
 			newState := NFAState{0, c, first.startingNFAState, nil, 0}
+			totalStates++
 			debugPrintNFA(&newState)
 
 			connectNFAFragments(first, &newState)
@@ -236,6 +240,7 @@ func postfix2nfa(postfix string) *NFAState {
 			first := s.Pop().(*NFAFragment)
 
 			newState := NFAState{0, c, first.startingNFAState, nil, 0}
+			totalStates++
 			debugPrintNFA(&newState)
 
 			connectNFAFragments(first, &newState)
@@ -247,6 +252,7 @@ func postfix2nfa(postfix string) *NFAState {
 			s.Push(&newFragment)
 		default:
 			newState := NFAState{1, c, nil, nil, 0}
+			totalStates++
 			debugPrintNFA(&newState)
 
 			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
@@ -262,7 +268,8 @@ func postfix2nfa(postfix string) *NFAState {
 	matchState := NFAState{-1, ' ', nil, nil, 0}
 	result := s.Pop().(*NFAFragment)
 	connectNFAFragments(result, &matchState)
-	return result.startingNFAState
+
+	return result.startingNFAState, totalStates
 }
 
 func dfsNFA(cur *NFAState, seen map[*NFAState]bool) {
@@ -325,7 +332,11 @@ func main() {
 	counter = 1
 	debugNumberingNFA = make(map[*NFAState]int)
 
-	startingNFAState := postfix2nfa(postfix)
+	startingNFAState, totalStates := postfix2nfa(postfix)
+	if totalStates-1 > len(postfix) {
+		panic("NFA state overflow!")
+	}
+
 	debugPrintNFA(startingNFAState)
 
 	matching(str, regex)

@@ -11,3 +11,8 @@ ba+c ba+.c.
 
 ba*c ba*.c.
 (a|b|c)*a abc||*a.
+
+regex/matching 
+abc abcd
+abcd abc
+abcd abcd
