@@ -38,6 +38,55 @@ func checkError(err error) {
 	}
 }
 
+/* NFA debugging code */
+func dfsNFA(cur *NFAState, seen map[*NFAState]bool) {
+	if cur == nil {
+		return
+	}
+
+	if val := seen[cur]; val == true {
+		return
+	}
+
+	debugPrintln("NFA state", getNumbering(cur), ":", cur.c.control, string(cur.c.c), getNumbering(cur.out1), getNumbering(cur.out2))
+
+	seen[cur] = true
+
+	dfsNFA(cur.out1, seen)
+	dfsNFA(cur.out2, seen)
+}
+
+func getNumbering(cur *NFAState) int {
+	if cur == nil {
+		return -1
+	}
+
+	if val := debugNumberingNFA[cur]; val == 0 {
+		debugNumberingNFA[cur] = counter
+		counter++
+	}
+
+	val := debugNumberingNFA[cur]
+	return val
+}
+
+func debugPrintOutptr(outPtr []**NFAState) {
+	for i := 0; i < len(outPtr); i++ {
+		debugPrintf("%d (%p)-> ", getNumbering(*outPtr[i]), *outPtr[i])
+	}
+	debugPrintln(" nil")
+}
+
+func debugPrintNFA(cur *NFAState) {
+	seen := make(map[*NFAState]bool)
+
+	debugPrintln("Starting NFA state", getNumbering(cur))
+
+	dfsNFA(cur, seen)
+}
+
+/* Core starts here */
+
 func parseArgument() (string, string) {
 	str := flag.String("str", "", "string to match")
 	regex := flag.String("pat", "", "pattern to match")
@@ -194,7 +243,7 @@ func postfix2nfa(postfix []Character) (*NFAState, int) {
 	for _, c := range postfix {
 		debugPrintln("\nWorking on", c.control, string(c.c))
 
-		if c.control == 2 {
+		if c.control == 2 { // for operators
 			switch c.c {
 			case '.':
 				second := s.Pop().(*NFAFragment)
@@ -263,7 +312,7 @@ func postfix2nfa(postfix []Character) (*NFAState, int) {
 			default:
 				panic("Unrecognized operator WTF")
 			}
-		} else if c.control == 1 {
+		} else if c.control == 1 { // for valid characters
 			newState := NFAState{Character{1, c.c}, nil, nil, 0}
 			totalStates++
 			debugPrintNFA(&newState)
@@ -285,52 +334,6 @@ func postfix2nfa(postfix []Character) (*NFAState, int) {
 	connectNFAFragments(result, &matchState)
 
 	return result.startingNFAState, totalStates
-}
-
-func dfsNFA(cur *NFAState, seen map[*NFAState]bool) {
-	if cur == nil {
-		return
-	}
-
-	if val := seen[cur]; val == true {
-		return
-	}
-
-	debugPrintln("NFA state", getNumbering(cur), ":", cur.c.control, string(cur.c.c), getNumbering(cur.out1), getNumbering(cur.out2))
-
-	seen[cur] = true
-
-	dfsNFA(cur.out1, seen)
-	dfsNFA(cur.out2, seen)
-}
-
-func getNumbering(cur *NFAState) int {
-	if cur == nil {
-		return -1
-	}
-
-	if val := debugNumberingNFA[cur]; val == 0 {
-		debugNumberingNFA[cur] = counter
-		counter++
-	}
-
-	val := debugNumberingNFA[cur]
-	return val
-}
-
-func debugPrintOutptr(outPtr []**NFAState) {
-	for i := 0; i < len(outPtr); i++ {
-		debugPrintf("%d (%p)-> ", getNumbering(*outPtr[i]), *outPtr[i])
-	}
-	debugPrintln(" nil")
-}
-
-func debugPrintNFA(cur *NFAState) {
-	seen := make(map[*NFAState]bool)
-
-	debugPrintln("Starting NFA state", getNumbering(cur))
-
-	dfsNFA(cur, seen)
 }
 
 func addState(cur *NFAState, nextStates *[]*NFAState, timer int) {
@@ -373,7 +376,7 @@ func match(startingNFAState *NFAState, totalStates int, str string) int {
 		// fmt.Println("loop, matching", string(c))
 
 		for _, j := range currentStates {
-			if j.c.control == 1 && j.c.c == c {
+			if j.c.control == 1 && j.c.c == c { // match only valid characters
 				// fmt.Println("Edge matched! Advancing", getNumbering(j))
 				addState(j.out1, &nextStates, t+2) // timers starts at 1, add the starting round => +2
 			}
