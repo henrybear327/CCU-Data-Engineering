@@ -170,18 +170,10 @@ type NFAFragment struct {
 
 // go ptr still needs to be dereferenced
 // just no need to worry about -> or .
-func connectNFAFragments(first, second *NFAFragment) *NFAFragment {
-	newFragment := NFAFragment{}
-
+func connectNFAFragments(first *NFAFragment, second *NFAState) {
 	for i := 0; i < len(first.outPtr); i++ {
-		*first.outPtr[i] = second.startingNFAState
+		*(first.outPtr[i]) = second
 	}
-
-	newFragment.startingNFAState = first.startingNFAState
-	newFragment.outPtr = make([]**NFAState, len(second.outPtr))
-	copy(newFragment.outPtr, second.outPtr)
-
-	return &newFragment
 }
 
 func postfix2nfa(postfix string) *NFAState {
@@ -197,11 +189,11 @@ func postfix2nfa(postfix string) *NFAState {
 			second := s.Pop().(*NFAFragment)
 			first := s.Pop().(*NFAFragment)
 
-			connected := connectNFAFragments(first, second)
-			debugPrintNFA(connected.startingNFAState)
-			// debugPrintOutptr(newFragment.outPtr)
+			connectNFAFragments(first, second.startingNFAState)
+			debugPrintNFA(first.startingNFAState)
 
-			s.Push(connected)
+			newFragment := NFAFragment{first.startingNFAState, second.outPtr}
+			s.Push(&newFragment)
 		case '|':
 			second := s.Pop().(*NFAFragment)
 			first := s.Pop().(*NFAFragment)
@@ -213,7 +205,6 @@ func postfix2nfa(postfix string) *NFAState {
 			newFragment.outPtr = append(newFragment.outPtr, first.outPtr...)
 			newFragment.outPtr = append(newFragment.outPtr, second.outPtr...)
 			debugPrintNFA(newFragment.startingNFAState)
-			// debugPrintOutptr(newFragment.outPtr)
 
 			s.Push(&newFragment)
 		case '?':
@@ -234,14 +225,26 @@ func postfix2nfa(postfix string) *NFAState {
 			newState := NFAState{0, c, first.startingNFAState, nil, 0}
 			debugPrintNFA(&newState)
 
+			connectNFAFragments(first, &newState)
+
+			newFragment := NFAFragment{first.startingNFAState, make([]**NFAState, 0)}
+			newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
+			debugPrintOutptr(newFragment.outPtr)
+
+			s.Push(&newFragment)
+		case '*':
+			first := s.Pop().(*NFAFragment)
+
+			newState := NFAState{0, c, first.startingNFAState, nil, 0}
+			debugPrintNFA(&newState)
+
+			connectNFAFragments(first, &newState)
+
 			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
 			newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
+			debugPrintOutptr(newFragment.outPtr)
 
-			connected := connectNFAFragments(first, &newFragment)
-			debugPrintOutptr(connected.outPtr)
-
-			s.Push(connected)
-		case '*':
+			s.Push(&newFragment)
 		default:
 			newState := NFAState{1, c, nil, nil, 0}
 			debugPrintNFA(&newState)

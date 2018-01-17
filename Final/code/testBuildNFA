@@ -8,3 +8,6 @@ ba?c ba?.c.
 
 ba+c ba+.c.
 (a|b|c)+a abc||+a.
+
+ba*c ba*.c.
+(a|b|c)*a abc||*a.
