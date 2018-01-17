@@ -1,3 +1,10 @@
+/*
+https://swtch.com/~rsc/regexp/regexp1.html
+
+Awesome tutorial!
+
+Studied the sample and expanded a bit. More to be done...
+*/
 package main
 
 import (
