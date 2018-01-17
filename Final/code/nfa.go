@@ -281,7 +281,7 @@ func dfsNFA(cur *NFAState, seen map[*NFAState]bool) {
 		return
 	}
 
-	debugPrintln("NFA state", getNumbering(cur), ":", string(cur.c), getNumbering(cur.out1), getNumbering(cur.out2))
+	// debugPrintln("NFA state", getNumbering(cur), ":", string(cur.c), getNumbering(cur.out1), getNumbering(cur.out2))
 
 	seen[cur] = true
 
@@ -334,32 +334,32 @@ func addState(cur *NFAState, nextStates *[]*NFAState, timer int) {
 }
 
 func exactMatch(startingNFAState *NFAState, totalStates int, str string) bool {
-	debugPrintln("matching", str)
+	// debugPrintln("matching", str)
 
 	currentStates := make([]*NFAState, 0)
 	addState(startingNFAState, &currentStates, 1) // timer starts at 1
-	fmt.Println("starting len", len(currentStates))
+	// fmt.Println("starting len", len(currentStates))
 
 	nextStates := make([]*NFAState, 0)
 	for t, c := range str {
 		// go
-		fmt.Println("loop, matching", string(c))
+		// fmt.Println("loop, matching", string(c))
 
 		for _, j := range currentStates {
 			if j.control == 1 && j.c == c {
-				fmt.Println("Edge matched! Advancing", getNumbering(j))
+				// fmt.Println("Edge matched! Advancing", getNumbering(j))
 				addState(j.out1, &nextStates, t+2) // timers starts at 1, add the starting round => +2
 			}
 		}
 
-		fmt.Println("len", len(nextStates))
+		// fmt.Println("len", len(nextStates))
 		currentStates = nextStates
 		nextStates = make([]*NFAState, 0)
 	}
 
 	// check matching
 	for _, c := range currentStates {
-		fmt.Println("checking", c)
+		// fmt.Println("checking", c)
 		if c.control == -1 {
 			return true
 		}
