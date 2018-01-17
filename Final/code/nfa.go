@@ -159,8 +159,7 @@ func regex2postfix(regex string) []Character {
 
 // NFAState is a single state in NFA
 type NFAState struct {
-	control int  // -1 for match, 0 epsilon / nil, 1 for regular rune, 2 for control
-	c       rune // int32, represents a Unicode code point
+	c Character
 
 	out1 *NFAState
 	out2 *NFAState
@@ -183,82 +182,86 @@ func connectNFAFragments(first *NFAFragment, second *NFAState) {
 	}
 }
 
-func postfix2nfa(postfix string) (*NFAState, int) {
+func postfix2nfa(postfix []Character) (*NFAState, int) {
 	// debugPrintln("postfix", postfix, "to nfa")
 
 	s := stack.New()
 	totalStates := 0
 
 	for _, c := range postfix {
-		debugPrintln("\nWorking on", string(c))
+		debugPrintln("\nWorking on", c.control, string(c.c))
 
-		switch c {
-		case '.':
-			second := s.Pop().(*NFAFragment)
-			first := s.Pop().(*NFAFragment)
+		if c.control == 2 {
+			switch c.c {
+			case '.':
+				second := s.Pop().(*NFAFragment)
+				first := s.Pop().(*NFAFragment)
 
-			connectNFAFragments(first, second.startingNFAState)
-			debugPrintNFA(first.startingNFAState)
+				connectNFAFragments(first, second.startingNFAState)
+				debugPrintNFA(first.startingNFAState)
 
-			newFragment := NFAFragment{first.startingNFAState, second.outPtr}
-			s.Push(&newFragment)
-		case '|':
-			second := s.Pop().(*NFAFragment)
-			first := s.Pop().(*NFAFragment)
+				newFragment := NFAFragment{first.startingNFAState, second.outPtr}
+				s.Push(&newFragment)
+			case '|':
+				second := s.Pop().(*NFAFragment)
+				first := s.Pop().(*NFAFragment)
 
-			newState := NFAState{0, c, first.startingNFAState, second.startingNFAState, 0}
-			totalStates++
-			debugPrintNFA(&newState)
+				newState := NFAState{Character{0, c.c}, first.startingNFAState, second.startingNFAState, 0}
+				totalStates++
+				debugPrintNFA(&newState)
 
-			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
-			newFragment.outPtr = append(newFragment.outPtr, first.outPtr...)
-			newFragment.outPtr = append(newFragment.outPtr, second.outPtr...)
-			debugPrintNFA(newFragment.startingNFAState)
+				newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
+				newFragment.outPtr = append(newFragment.outPtr, first.outPtr...)
+				newFragment.outPtr = append(newFragment.outPtr, second.outPtr...)
+				debugPrintNFA(newFragment.startingNFAState)
 
-			s.Push(&newFragment)
-		case '?':
-			first := s.Pop().(*NFAFragment)
+				s.Push(&newFragment)
+			case '?':
+				first := s.Pop().(*NFAFragment)
 
-			newState := NFAState{0, c, first.startingNFAState, nil, 0}
-			totalStates++
-			debugPrintNFA(&newState)
+				newState := NFAState{Character{0, c.c}, first.startingNFAState, nil, 0}
+				totalStates++
+				debugPrintNFA(&newState)
 
-			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
-			newFragment.outPtr = append(newFragment.outPtr, first.outPtr...)
-			newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
-			debugPrintOutptr(newFragment.outPtr)
+				newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
+				newFragment.outPtr = append(newFragment.outPtr, first.outPtr...)
+				newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
+				debugPrintOutptr(newFragment.outPtr)
 
-			s.Push(&newFragment)
-		case '+':
-			first := s.Pop().(*NFAFragment)
+				s.Push(&newFragment)
+			case '+':
+				first := s.Pop().(*NFAFragment)
 
-			newState := NFAState{0, c, first.startingNFAState, nil, 0}
-			totalStates++
-			debugPrintNFA(&newState)
+				newState := NFAState{Character{0, c.c}, first.startingNFAState, nil, 0}
+				totalStates++
+				debugPrintNFA(&newState)
 
-			connectNFAFragments(first, &newState)
+				connectNFAFragments(first, &newState)
 
-			newFragment := NFAFragment{first.startingNFAState, make([]**NFAState, 0)}
-			newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
-			debugPrintOutptr(newFragment.outPtr)
+				newFragment := NFAFragment{first.startingNFAState, make([]**NFAState, 0)}
+				newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
+				debugPrintOutptr(newFragment.outPtr)
 
-			s.Push(&newFragment)
-		case '*':
-			first := s.Pop().(*NFAFragment)
+				s.Push(&newFragment)
+			case '*':
+				first := s.Pop().(*NFAFragment)
 
-			newState := NFAState{0, c, first.startingNFAState, nil, 0}
-			totalStates++
-			debugPrintNFA(&newState)
+				newState := NFAState{Character{0, c.c}, first.startingNFAState, nil, 0}
+				totalStates++
+				debugPrintNFA(&newState)
 
-			connectNFAFragments(first, &newState)
+				connectNFAFragments(first, &newState)
 
-			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
-			newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
-			debugPrintOutptr(newFragment.outPtr)
+				newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
+				newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
+				debugPrintOutptr(newFragment.outPtr)
 
-			s.Push(&newFragment)
-		default:
-			newState := NFAState{1, c, nil, nil, 0}
+				s.Push(&newFragment)
+			default:
+				panic("Unrecognized operator WTF")
+			}
+		} else if c.control == 1 {
+			newState := NFAState{Character{1, c.c}, nil, nil, 0}
 			totalStates++
 			debugPrintNFA(&newState)
 
@@ -267,12 +270,14 @@ func postfix2nfa(postfix string) (*NFAState, int) {
 			debugPrintOutptr(newFragment.outPtr)
 
 			s.Push(&newFragment)
+		} else {
+			panic("WTF is wrong with control value is NFA construction")
 		}
 	}
 
 	debugPrintln("\n\n\n")
 
-	matchState := NFAState{-1, ' ', nil, nil, 0}
+	matchState := NFAState{Character{-1, ' '}, nil, nil, 0}
 	result := s.Pop().(*NFAFragment)
 	connectNFAFragments(result, &matchState)
 
@@ -288,7 +293,7 @@ func dfsNFA(cur *NFAState, seen map[*NFAState]bool) {
 		return
 	}
 
-	// debugPrintln("NFA state", getNumbering(cur), ":", string(cur.c), getNumbering(cur.out1), getNumbering(cur.out2))
+	debugPrintln("NFA state", getNumbering(cur), ":", cur.c.control, string(cur.c.c), getNumbering(cur.out1), getNumbering(cur.out2))
 
 	seen[cur] = true
 
@@ -331,7 +336,7 @@ func addState(cur *NFAState, nextStates *[]*NFAState, timer int) {
 	}
 
 	cur.timestamp = timer
-	if cur.control == 0 { // epsilon edge, go!
+	if cur.c.control == 0 { // epsilon edge, go!
 		addState(cur.out1, nextStates, timer)
 		addState(cur.out2, nextStates, timer)
 		return
@@ -343,7 +348,7 @@ func addState(cur *NFAState, nextStates *[]*NFAState, timer int) {
 func isMatched(currentStates []*NFAState) bool {
 	for _, c := range currentStates {
 		// fmt.Println("checking", c)
-		if c.control == -1 {
+		if c.c.control == -1 {
 			return true // exact match
 		}
 	}
@@ -365,7 +370,7 @@ func match(startingNFAState *NFAState, totalStates int, str string) int {
 		// fmt.Println("loop, matching", string(c))
 
 		for _, j := range currentStates {
-			if j.control == 1 && j.c == c {
+			if j.c.control == 1 && j.c.c == c {
 				// fmt.Println("Edge matched! Advancing", getNumbering(j))
 				addState(j.out1, &nextStates, t+2) // timers starts at 1, add the starting round => +2
 			}
@@ -395,24 +400,24 @@ func main() {
 	postfix := regex2postfix(regex)
 	fmt.Println(postfix)
 
-	// counter = 1
-	// debugNumberingNFA = make(map[*NFAState]int)
+	counter = 1
+	debugNumberingNFA = make(map[*NFAState]int)
 
-	// startingNFAState, totalStates := postfix2nfa(postfix)
-	// debugPrintNFA(startingNFAState)
-	// if totalStates > len(postfix) {
-	// 	panic("NFA state overflow!")
-	// }
+	startingNFAState, totalStates := postfix2nfa(postfix)
+	debugPrintNFA(startingNFAState)
+	if totalStates > len(postfix) {
+		panic("NFA state overflow!")
+	}
 
-	// res := match(startingNFAState, totalStates, str)
-	// fmt.Println("res", res)
-	// if res == len(str) {
-	// 	fmt.Println("Exact match:", str)
-	// } else if 0 <= res && res < len(str) {
-	// 	fmt.Println("Partial match:", str[0:res])
-	// } else if res == -1 {
-	// 	fmt.Println("Mismatch")
-	// } else {
-	// 	panic("WTF is going on with match() return value")
-	// }
+	res := match(startingNFAState, totalStates, str)
+	fmt.Println("res", res)
+	if res == len(str) {
+		fmt.Println("Exact match:", str)
+	} else if 0 <= res && res < len(str) {
+		fmt.Println("Partial match:", str[0:res])
+	} else if res == -1 {
+		fmt.Println("Mismatch")
+	} else {
+		panic("WTF is going on with match() return value")
+	}
 }
