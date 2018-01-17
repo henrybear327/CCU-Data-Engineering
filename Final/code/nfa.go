@@ -141,7 +141,7 @@ func addValidCharacter(components *int, res *[]Character, c rune) {
 
 func isOperator(c rune) bool {
 	switch c {
-	case '+', '?', '*', '|', '(', ')', '.':
+	case '+', '?', '*', '|', '(', ')', '.', '\\':
 		return true
 	default:
 		return false
