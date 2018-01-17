@@ -229,6 +229,18 @@ func postfix2nfa(postfix string) *NFAState {
 
 			s.Push(&newFragment)
 		case '+':
+			first := s.Pop().(*NFAFragment)
+
+			newState := NFAState{0, c, first.startingNFAState, nil, 0}
+			debugPrintNFA(&newState)
+
+			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
+			newFragment.outPtr = append(newFragment.outPtr, &newState.out2)
+
+			connected := connectNFAFragments(first, &newFragment)
+			debugPrintOutptr(connected.outPtr)
+
+			s.Push(connected)
 		case '*':
 		default:
 			newState := NFAState{1, c, nil, nil, 0}
