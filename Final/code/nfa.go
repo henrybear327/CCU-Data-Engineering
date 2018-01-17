@@ -54,7 +54,7 @@ type StackData struct {
 
 // Character is the data structure for holding the character, concat signal, etc.
 type Character struct {
-	control int // -1 none, 0 concat, 1 alternation, 2 ...
+	control int // 0 for nil, 1 for regular rune, 2 ...
 	c       rune
 }
 
@@ -152,7 +152,8 @@ func regex2postfix(regex string) string {
 
 // NFAState is a single state in NFA
 type NFAState struct {
-	c rune // int32, represents a Unicode code point
+	control int  // 0 nil, 1 for regular rune
+	c       rune // int32, represents a Unicode code point
 
 	out1 *NFAState
 	out2 *NFAState
@@ -169,7 +170,7 @@ type NFAFragment struct {
 
 // go ptr still needs to be dereferenced
 // just no need to worry about -> or .
-func connectNFAFragments(first, second NFAFragment) NFAFragment {
+func connectNFAFragments(first, second *NFAFragment) *NFAFragment {
 	newFragment := NFAFragment{}
 
 	for i := 0; i < len(first.outPtr); i++ {
@@ -180,7 +181,7 @@ func connectNFAFragments(first, second NFAFragment) NFAFragment {
 	newFragment.outPtr = make([]**NFAState, len(second.outPtr))
 	copy(newFragment.outPtr, second.outPtr)
 
-	return newFragment
+	return &newFragment
 }
 
 func postfix2nfa(postfix string) *NFAState {
@@ -193,29 +194,45 @@ func postfix2nfa(postfix string) *NFAState {
 
 		switch c {
 		case '.':
-			second := s.Pop()
-			first := s.Pop()
+			second := s.Pop().(*NFAFragment)
+			first := s.Pop().(*NFAFragment)
 
-			connected := connectNFAFragments(first.(NFAFragment), second.(NFAFragment))
+			connected := connectNFAFragments(first, second)
+			debugPrintNFA(connected.startingNFAState)
+			// debugPrintOutptr(newFragment.outPtr)
 
-			// debugPrintNFA(connected.startingNFAState)
 			s.Push(connected)
 		case '|':
+			second := s.Pop().(*NFAFragment)
+			first := s.Pop().(*NFAFragment)
+
+			newState := NFAState{0, c, first.startingNFAState, second.startingNFAState, 0}
+			debugPrintNFA(&newState)
+
+			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
+			newFragment.outPtr = append(newFragment.outPtr, first.outPtr...)
+			newFragment.outPtr = append(newFragment.outPtr, second.outPtr...)
+			debugPrintNFA(newFragment.startingNFAState)
+			// debugPrintOutptr(newFragment.outPtr)
+
+			s.Push(&newFragment)
 		case '?':
 		case '+':
 		case '*':
 		default:
-			newState := NFAState{c, nil, nil, 0}
-			// debugPrintNFA(&newState)
+			newState := NFAState{1, c, nil, nil, 0}
+			debugPrintNFA(&newState)
 
 			newFragment := NFAFragment{&newState, make([]**NFAState, 0)}
 			newFragment.outPtr = append(newFragment.outPtr, &newState.out1)
+			debugPrintOutptr(newFragment.outPtr)
 
-			s.Push(newFragment)
+			s.Push(&newFragment)
 		}
 	}
 
-	return s.Pop().(NFAFragment).startingNFAState
+	debugPrintln("\n\n\n")
+	return s.Pop().(*NFAFragment).startingNFAState
 }
 
 func dfsNFA(cur *NFAState, seen map[*NFAState]bool) {
@@ -247,6 +264,13 @@ func getNumbering(cur *NFAState) int {
 
 	val := debugNumberingNFA[cur]
 	return val
+}
+
+func debugPrintOutptr(outPtr []**NFAState) {
+	for i := 0; i < len(outPtr); i++ {
+		debugPrintf("%d (%p)-> ", getNumbering(*outPtr[i]), *outPtr[i])
+	}
+	debugPrintln(" nil")
 }
 
 func debugPrintNFA(cur *NFAState) {
