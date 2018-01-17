@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"unicode/utf8"
 
 	"github.com/golang-collections/collections/stack"
 )
@@ -387,7 +388,7 @@ func match(startingNFAState *NFAState, totalStates int, str string) int {
 		nextStates = make([]*NFAState, 0)
 
 		if isMatched(currentStates) {
-			partialMatch = t + 1
+			partialMatch = t + utf8.RuneLen(c)
 		}
 	}
 
